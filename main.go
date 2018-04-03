@@ -2,9 +2,9 @@ package main
 
 import (
 	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 	"github.com/petar/GoLLRB/llrb"
 	"os"
 	"runtime"
@@ -37,10 +37,14 @@ func Check(e error) {
 	}
 }
 
+type spec struct {
+	Version string `json:"version"`
+	Buckets []string `json:"buckets"`
+}
+
 func getSpec (w http.ResponseWriter, r *http.Request) {
-	message := r.URL.Path
-  message = strings.TrimPrefix(message, "/")
-  message = "Hello " + message
+	formattedJson := map[string]string{"version": "0.0.1", "buckets": "none"}
+	message, _ := json.Marshal(formattedJson)
   w.Write([]byte(message))
 }
 
