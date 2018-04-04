@@ -13,13 +13,16 @@ import (
 const file = "/tmp/pangolin.db"
 
 type Blob struct {
-	data string `json:"data"`
 	id int `json:"id"`
+	data string `json:"data"`
 }
 
-// type Blob interface {
-// 	Less(than Item) bool
-// }
+func (b *Blob) Less (than llrb.Item) bool {
+	if v, ok := than.(*Blob); ok {
+		return b.id < v.id
+	}
+	return false
+}
 
 // func (b *Blob) Less (than llrb.Item) bool {
 // 	switch than {
@@ -38,6 +41,14 @@ func main() {
  	http.HandleFunc("/", getSpec)
 
 	tree := CreateTree() 
+
+	blob := &Blob{id: 1, data: "1234"}
+
+	tree.ReplaceOrInsert(blob)
+
+	queryBlob := &Blob{id: 1}
+
+	fmt.Println(tree.Get(queryBlob))
 
 	writeErr := Save(file, tree)
 	Check(writeErr)
