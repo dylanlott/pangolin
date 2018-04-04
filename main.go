@@ -16,6 +16,15 @@ type DB struct {
 	tree *llrb.LLRB
 }
 
+// interface needs work
+type Database interface {
+	Get (id int) 
+	Set (blob Blob)
+	Has (id int)
+	Delete (id int)
+	New (llrb.LLRB)
+}
+
 type Blob struct {
 	id int `json:"id"`
 	data string `json:"data"`
@@ -88,6 +97,14 @@ func getSpec (w http.ResponseWriter, r *http.Request) {
 
 	message, _ := json.Marshal(response)
   w.Write([]byte(message))
+}
+
+func HandlePost (w http.ResponseWriter, r *http.Request) {
+
+}
+
+func HandleGet (w http.ResponseWriter, r *http.Request) {
+
 }
 
 func Save (path string, object interface{}) error {
