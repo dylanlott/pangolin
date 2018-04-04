@@ -12,9 +12,22 @@ import (
 
 const file = "/tmp/pangolin.db"
 
+type DB struct {
+	tree *llrb.LLRB
+}
+
 type Blob struct {
 	id int `json:"id"`
 	data string `json:"data"`
+}
+
+func (db *DB) Set (blob *Blob) llrb.Item {
+	return db.tree.ReplaceOrInsert(blob)
+}
+
+func (db *DB) Get (id int) llrb.Item {
+	blob := &Blob{id: id}
+	return db.tree.Get(blob)
 }
 
 func (b *Blob) Less (than llrb.Item) bool {
@@ -24,17 +37,6 @@ func (b *Blob) Less (than llrb.Item) bool {
 	return false
 }
 
-// func (b *Blob) Less (than llrb.Item) bool {
-// 	switch than {
-// 	case nil: 
-// 		return false
-// 	default:
-// 		return b.id < Blob(than).id
-// 	}
-// }
-
-// func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
-
 func main() {
 	fmt.Println("pangolin is starting up")
 
@@ -42,13 +44,16 @@ func main() {
 
 	tree := CreateTree() 
 
+	db := DB{tree}
+
 	blob := &Blob{id: 1, data: "1234"}
 
-	tree.ReplaceOrInsert(blob)
+	db.Set(blob)
 
 	queryBlob := &Blob{id: 1}
 
 	fmt.Println(tree.Get(queryBlob))
+	fmt.Println(tree.Has(queryBlob))
 
 	writeErr := Save(file, tree)
 	Check(writeErr)
