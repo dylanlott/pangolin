@@ -55,7 +55,7 @@ func main() {
 
 	// db := DB{tree}
 
-	blob := &Blob{id: 1, data: "1234"}
+	// blob := &Blob{id: 1, data: "1234"}
 
 	// db.Set(blob)
 
@@ -64,10 +64,11 @@ func main() {
 	// fmt.Println(tree.Get(queryBlob))
 	// fmt.Println(tree.Has(queryBlob))
 
-	db, err := Load()
-	Check(err)
+	db := Load()
+	fmt.Println(db)
+	// Check(err)
 
-	db.Set(blob)
+	// db.Set(blob)
 	// writeErr := Save(file, tree)
 	// Check(writeErr)
 
