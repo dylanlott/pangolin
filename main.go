@@ -12,25 +12,39 @@ import (
 
 const file = "/tmp/pangolin.db"
 
-type Blob struct {
-	data string `json:"data"`
-	id int `json:"id"`
+type DB struct {
+	tree *llrb.LLRB
 }
 
-// type Blob interface {
-// 	Less(than Item) bool
-// }
+// interface needs work
+type Database interface {
+	Get (id int) 
+	Set (blob Blob)
+	Has (id int)
+	Delete (id int)
+	New (llrb.LLRB)
+}
 
-// func (b *Blob) Less (than llrb.Item) bool {
-// 	switch than {
-// 	case nil: 
-// 		return false
-// 	default:
-// 		return b.id < Blob(than).id
-// 	}
-// }
+type Blob struct {
+	id int `json:"id"`
+	data string `json:"data"`
+}
 
-// func lessInt(a, b interface{}) bool { return a.(int) < b.(int) }
+func (db *DB) Set (blob *Blob) llrb.Item {
+	return db.tree.ReplaceOrInsert(blob)
+}
+
+func (db *DB) Get (id int) llrb.Item {
+	blob := &Blob{id: id}
+	return db.tree.Get(blob)
+}
+
+func (b *Blob) Less (than llrb.Item) bool {
+	if v, ok := than.(*Blob); ok {
+		return b.id < v.id
+	}
+	return false
+}
 
 func main() {
 	fmt.Println("pangolin is starting up")
@@ -38,6 +52,17 @@ func main() {
  	http.HandleFunc("/", getSpec)
 
 	tree := CreateTree() 
+
+	db := DB{tree}
+
+	blob := &Blob{id: 1, data: "1234"}
+
+	db.Set(blob)
+
+	queryBlob := &Blob{id: 1}
+
+	fmt.Println(tree.Get(queryBlob))
+	fmt.Println(tree.Has(queryBlob))
 
 	writeErr := Save(file, tree)
 	Check(writeErr)
@@ -72,6 +97,14 @@ func getSpec (w http.ResponseWriter, r *http.Request) {
 
 	message, _ := json.Marshal(response)
   w.Write([]byte(message))
+}
+
+func HandlePost (w http.ResponseWriter, r *http.Request) {
+
+}
+
+func HandleGet (w http.ResponseWriter, r *http.Request) {
+
 }
 
 func Save (path string, object interface{}) error {
