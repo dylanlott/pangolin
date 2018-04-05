@@ -10,7 +10,7 @@ import (
 	"runtime"
 )
 
-const file = "/tmp/pangolin.db"
+const DatabasePath = "/tmp/pangolin.db"
 
 type DB struct {
 	tree *llrb.LLRB
@@ -64,7 +64,7 @@ func main() {
 	// fmt.Println(tree.Get(queryBlob))
 	// fmt.Println(tree.Has(queryBlob))
 
-	db, err := LoadTree()
+	db, err := Load()
 	Check(err)
 
 	db.Set(blob)
@@ -124,29 +124,27 @@ func Save (path string, object interface{}) error {
 	return err
 }
 
-func Load (path string, object *DB) error {
-	file, err := os.Open(path)
+func Load () error {
+	if _, err := os.Stat(DatabasePath); os.IsNotExist(err) {
+		fmt.Println("Database does not exist") // need to handle this
+	}
+
+	db := &DB{}
+
+	file, err := os.Open(DatabasePath)
 	if err == nil {
 		decoder := gob.NewDecoder(file)
-		err = decoder.Decode(object.tree)
+		err = decoder.Decode(db.tree)
 	}
 	file.Close()
+
+	if db.tree == nil {
+		db.tree = &llrb.LLRB{}
+	}
 	return err
 }
 
 func CreateTree () *llrb.LLRB {
 	tree := llrb.New()
 	return tree
-}
-
-func LoadTree () (DB, error) { 
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		fmt.Println("Database does not exist") // need to handle this
-	}
-
-	db := DB{}
-	Load(file, &db)
-	fmt.Println(db)
-
-	return db, nil
 }
