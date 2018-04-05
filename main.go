@@ -148,6 +148,3 @@ func CreateTree () *llrb.LLRB {
 	tree := llrb.New()
 	return tree
 }
-
-func Load () (*DB, error) {
-}
