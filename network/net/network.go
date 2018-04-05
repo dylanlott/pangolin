@@ -11,24 +11,24 @@ const NetworkSize = 4
 type Network [NetworkSize]*NetNode
 
 type NetNode struct {
-	id    int
+	Id    int
 	peers []*NetNode
 	state State
 }
 
 func (n *NetNode) RandomGossip(t time.Time) {
-	fmt.Println("n:", n)
+	// fmt.Println("n:", n)
 	r := rand.Intn(len(n.peers))
 	peer := n.peers[r]
 
-	fmt.Println("contacting node:", peer)
+	fmt.Printf("node %d; contacting node: %d\n", n.Id, peer.Id)
 	peer.sync(n)
 }
 
 func (n *NetNode) sync(peer *NetNode) {
-	selfDiff, peerDiff := n.state.diff(peer.state)
-	n.state.apply(selfDiff)
-	peer.state.apply(peerDiff)
+	selfDiff, peerDiff := n.state.diff(&peer.state)
+	n.state.apply(&selfDiff)
+	peer.state.apply(&peerDiff)
 }
 
 func Bootstrap() Network {
@@ -37,7 +37,7 @@ func Bootstrap() Network {
 	// Generate nodes
 	for i, _ := range network {
 		network[i] = new(NetNode)
-		*network[i] = NetNode{id: i}
+		*network[i] = NetNode{Id: i}
 	}
 
 	// Populate nodes' peers

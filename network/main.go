@@ -15,18 +15,17 @@ func main() {
 	// Initialize
 	u, _ := user.Current()
 	consensusOptions := consensus.Options{
-		time.Second / 5,
+		time.Second / 1,
 		filepath.Join(u.HomeDir, ".pangolin", "bolt.db"),
 		0755,
 	}
-	network := net.Bootstrap()
-	node := network[0]
 
 	// Main loop status channel
 	program := make(chan int)
 
 	// Kick off gossip loop
-	go consensus.Run(program, node, consensusOptions)
+	network := net.Bootstrap()
+	go consensus.Run(program, network, consensusOptions)
 
 	// Block until `program` is closed or SIGINT
 	go handleSignals(program)
