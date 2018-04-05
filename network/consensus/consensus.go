@@ -4,10 +4,7 @@ import (
 	"../net"
 	"../utils"
 	"time"
-	"github.com/boltdb/bolt"
-	"log"
 	"os"
-	"path/filepath"
 )
 
 type Options struct {
@@ -16,16 +13,7 @@ type Options struct {
 	Mode     os.FileMode
 }
 
-var Db *bolt.DB
-
-func Run(c chan int, network net.Network, o Options) {
-	err := utils.EnsureDirectory(filepath.Dir(o.Path), o.Mode | os.ModeDir)
-	errCheck(c, err)
-	db, err := bolt.Open(o.Path, o.Mode, nil)
-	errCheck(c, err)
-
-	Db = db
-
+func Run(p *utils.Program, network net.Network, o Options) {
 	for _, node := range network {
 		go (func(node *net.NetNode) {
 			// Loop forever every `interval`
@@ -34,13 +22,5 @@ func Run(c chan int, network net.Network, o Options) {
 				node.RandomGossip(t)
 			}
 		})(node)
-	}
-}
-
-func errCheck(c chan int, err error) {
-	if err != nil {
-		log.Fatal("Persistence error: ", err)
-		c <- 1
-		close(c)
 	}
 }

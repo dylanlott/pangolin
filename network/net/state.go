@@ -6,31 +6,40 @@ import (
 )
 
 type State struct {
-	db bolt.DB
-	bucket bolt.Bucket
+	Db     *bolt.DB
+	Bucket []byte
 }
 
 type Diff struct {
 	state1 *State
 	state2 *State
-	equal bool
-	data State
+	equal  bool
+	data   State
 }
 
-func (s *State) diffKeys(state *State) ([]string, []int) {
+func (state *State) diffKeys(state2 *State) ([]string, []int) {
 	keys := make([]string, 0)
 	indexes := make([]int, 0)
 
-	// consensus.Db.
+	// state.Db.View(func(tx *bolt.Tx) error {
+	// 	c := tx.Bucket(state.bucket).Cursor()
 	//
-	// for i, key := range s.keys {
-	// 	state.keys[i]
+	// 	for k, v := c.First(); k != nil; k, v = c.Next() {
+	// 		fmt.Printf("key=%s, value=%s\n", k, v)
+	// 	}
+	//
+	// 	return nil
+	// })
+
+	// for i, key := range State.keys {
+	// 	state2.keys[i]
 	// }
 	return keys, indexes
 }
 
-func (s *State) diff(state *State) (Diff, Diff) {
-	// keys, indexes := s.diffKeys(state)
+func (state *State) diff(state2 *State) (Diff, Diff) {
+	keys, indexes := state.diffKeys(state)
+	fmt.Println(keys, indexes)
 	diff1 := Diff{equal: true}
 	diff2 := Diff{equal: true}
 	// diff1 := new(Diff)
@@ -41,10 +50,10 @@ func (s *State) diff(state *State) (Diff, Diff) {
 	return diff1, diff2
 }
 
-func (s *State) apply(diff *Diff) {
+func (state *State) apply(diff *Diff) {
 	if diff.equal {
 		return
 	}
 
-	fmt.Printf("updating s: %v\nwith diff: %v", s, diff)
+	fmt.Printf("updating State: %v\nwith diff: %v", state, diff)
 }

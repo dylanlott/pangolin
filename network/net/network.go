@@ -1,9 +1,11 @@
 package net
 
 import (
+	"../utils"
 	"time"
 	"fmt"
 	"math/rand"
+	"github.com/boltdb/bolt"
 )
 
 const NetworkSize = 4
@@ -13,7 +15,7 @@ type Network [NetworkSize]*NetNode
 type NetNode struct {
 	Id    int
 	peers []*NetNode
-	state State
+	State State
 }
 
 func (n *NetNode) RandomGossip(t time.Time) {
@@ -26,13 +28,13 @@ func (n *NetNode) RandomGossip(t time.Time) {
 }
 
 func (n *NetNode) sync(peer *NetNode) {
-	selfDiff, peerDiff := n.state.diff(&peer.state)
-	n.state.apply(&selfDiff)
-	peer.state.apply(&peerDiff)
+	selfDiff, peerDiff := n.State.diff(&peer.State)
+	n.State.apply(&selfDiff)
+	peer.State.apply(&peerDiff)
 }
 
-func Bootstrap() Network {
-	network := Network{}
+func Bootstrap(p *utils.Program, db *bolt.DB) (network Network) {
+	network = Network{}
 
 	// Generate nodes
 	for i, _ := range network {
@@ -42,6 +44,7 @@ func Bootstrap() Network {
 
 	// Populate nodes' peers
 	for i, node := range network {
+		node.State = State{db, []byte("node-" + string(i))}
 		node.peers = make([]*NetNode, 0)
 		for j, peer := range network {
 			if i != j {
@@ -50,5 +53,25 @@ func Bootstrap() Network {
 		}
 	}
 
-	return network
+	bucketErrors := EnsureBuckets(db, network)
+	for _, err := range bucketErrors {
+		p.ErrCheck( err)
+	}
+
+	return
 }
+
+func EnsureBuckets(db *bolt.DB, network Network) (errors []error) {
+	errors = make([]error, 0)
+
+	for _, node := range network {
+		db.Update(func(tx *bolt.Tx) error {
+			_, err := tx.CreateBucketIfNotExists([]byte("node" + string(node.Id)))
+			errors = append(errors, err)
+			return err
+		})
+	}
+
+	return
+}
+
