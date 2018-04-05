@@ -3,43 +3,37 @@ package main
 import (
 	"time"
 	"os"
+	"./net"
+	"./consensus"
 	"fmt"
 	"os/signal"
-	"../net"
 )
 
 func main() {
-	// _, err := bolt.Open("bolt.db", 0644, nil)
-
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	// Initialize
 	network := net.Bootstrap()
 	node := network[0]
 
+	// Main loop status channel
 	program := make(chan int)
-	go consensus(program, node)
+
+	// Kick off gossip loop
+	interval := time.Second / 5
+	go consensus.Run(program, node, interval)
+
+	// Block until `program` is closed or SIGINT
 	go handleSignals(program)
-	os.Exit(run(program, 0))
+	os.Exit(block(program, 0))
 }
 
-func consensus(program chan int, node *net.NetNode) {
-	ticker := time.NewTicker(time.Second / 5)
-
-	// i := 0
-	for t := range ticker.C {
-		node.RandomGossip(t)
-	}
-}
-
-func run(program chan int, status int) int {
+func block(program chan int, status int) int {
 	_status, ok := <-program
 	if !ok {
 		fmt.Println("last status:", _status)
 		return status
 	}
 
-	return run(program, _status)
+	return block(program, _status)
 }
 
 func handleSignals(program chan int) {
