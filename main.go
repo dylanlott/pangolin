@@ -55,7 +55,7 @@ func main() {
 
 	// db := DB{tree}
 
-	// blob := &Blob{id: 1, data: "1234"}
+	blob := &Blob{id: 1, data: "1234"}
 
 	// db.Set(blob)
 
@@ -64,9 +64,10 @@ func main() {
 	// fmt.Println(tree.Get(queryBlob))
 	// fmt.Println(tree.Has(queryBlob))
 
-	db := LoadTree()
-	fmt.Println(db)
+	db, err := LoadTree()
+	Check(err)
 
+	db.Set(blob)
 	// writeErr := Save(file, tree)
 	// Check(writeErr)
 
@@ -88,7 +89,7 @@ type spec struct {
 	Buckets []string `json:"buckets"`
 }
 
-func getBuckets () string {
+func getBuckets () string { 
 	return "none"
 }
 
@@ -138,11 +139,14 @@ func CreateTree () *llrb.LLRB {
 	return tree
 }
 
-func LoadTree () *DB {
+func LoadTree () (*llrb.LLRB, error) { 
 	if _, err := os.Stat(file); os.IsNotExist(err) {
 		fmt.Println("Database does not exist") // need to handle this
 	}
-	tree := Load(file, &DB{})
+
+	db := DB{}
+	tree := Load(file, &db)
 	fmt.Println(tree)
-	return &DB{}
+
+	return tree, nil
 }
