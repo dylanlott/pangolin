@@ -1,16 +1,24 @@
 package main
 
 import (
-	"time"
 	"os"
 	"./net"
 	"./consensus"
 	"fmt"
 	"os/signal"
+	"time"
+	"os/user"
+	"path/filepath"
 )
 
 func main() {
 	// Initialize
+	u, _ := user.Current()
+	consensusOptions := consensus.Options{
+		time.Second / 5,
+		filepath.Join(u.HomeDir, ".pangolin", "bolt.db"),
+		0755,
+	}
 	network := net.Bootstrap()
 	node := network[0]
 
@@ -18,8 +26,7 @@ func main() {
 	program := make(chan int)
 
 	// Kick off gossip loop
-	interval := time.Second / 5
-	go consensus.Run(program, node, interval)
+	go consensus.Run(program, node, consensusOptions)
 
 	// Block until `program` is closed or SIGINT
 	go handleSignals(program)
