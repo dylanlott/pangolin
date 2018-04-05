@@ -21,15 +21,15 @@ func (state *State) diffKeys(state2 *State) ([]string, []int) {
 	keys := make([]string, 0)
 	indexes := make([]int, 0)
 
-	// state.Db.View(func(tx *bolt.Tx) error {
-	// 	c := tx.Bucket(state.bucket).Cursor()
-	//
-	// 	for k, v := c.First(); k != nil; k, v = c.Next() {
-	// 		fmt.Printf("key=%s, value=%s\n", k, v)
-	// 	}
-	//
-	// 	return nil
-	// })
+	state.Db.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket(state.Bucket).Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			fmt.Printf("key=%s, value=%s\n", k, v)
+		}
+
+		return nil
+	})
 
 	// for i, key := range State.keys {
 	// 	state2.keys[i]

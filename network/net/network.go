@@ -44,7 +44,7 @@ func Bootstrap(p *utils.Program, db *bolt.DB) (network Network) {
 
 	// Populate nodes' peers
 	for i, node := range network {
-		node.State = State{db, []byte("node-" + string(i))}
+		node.State = State{db, []byte(fmt.Sprintf("node-%d", i))}
 		node.peers = make([]*NetNode, 0)
 		for j, peer := range network {
 			if i != j {
@@ -65,10 +65,10 @@ func EnsureBuckets(db *bolt.DB, network Network) (errors []error) {
 	errors = make([]error, 0)
 
 	for _, node := range network {
-		db.Update(func(tx *bolt.Tx) error {
-			_, err := tx.CreateBucketIfNotExists([]byte("node" + string(node.Id)))
+		db.Update(func(tx *bolt.Tx) (err error) {
+			_, err = tx.CreateBucketIfNotExists([]byte(fmt.Sprintf("node-%d", node.Id)))
 			errors = append(errors, err)
-			return err
+			return
 		})
 	}
 
