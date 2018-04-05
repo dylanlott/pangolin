@@ -1,4 +1,4 @@
-// package concensus
+// package consensus
 package main
 
 import (
@@ -15,11 +15,11 @@ func main() {
 	// }
 
 	program := make(chan int)
-	go concensus(program)
+	go consensus(program)
 	os.Exit(run(program, 0))
 }
 
-func concensus(program chan int) {
+func consensus(program chan int) {
 	ticker := time.NewTicker(time.Second / 5)
 
 	i := 0
