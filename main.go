@@ -31,7 +31,6 @@ type Blob struct {
 }
 
 func (db *DB) Set (blob *Blob) llrb.Item {
-	fmt.Println("blob", blob)
 	return db.tree.ReplaceOrInsert(blob)
 }
 
@@ -68,7 +67,6 @@ func main() {
 	db, err := LoadTree()
 	Check(err)
 
-	fmt.Println("blob", blob)
 	db.Set(blob)
 	// writeErr := Save(file, tree)
 	// Check(writeErr)
@@ -152,7 +150,6 @@ func LoadTree () (*DB, error) {
 
 	db := &DB{}
 	Load(file, db)
-	fmt.Println("db", db)
 
 	return db, nil
 }
