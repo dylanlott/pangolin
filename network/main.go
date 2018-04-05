@@ -44,7 +44,7 @@ func initialize() (p utils.Program, db *bolt.DB, o consensus.Options) {
 	db, err = bolt.Open(o.Path, o.Mode, nil)
 	p.ErrCheck(err)
 
-	return
+	return p, db, o
 }
 
 func block(p *utils.Program, status int) int {

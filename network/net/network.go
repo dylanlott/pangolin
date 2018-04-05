@@ -29,8 +29,8 @@ func (n *NetNode) RandomGossip(t time.Time) {
 
 func (n *NetNode) sync(peer *NetNode) {
 	selfDiff, peerDiff := n.State.diff(&peer.State)
-	n.State.apply(&selfDiff)
-	peer.State.apply(&peerDiff)
+	n.State.write(&selfDiff)
+	peer.State.write(&peerDiff)
 }
 
 func Bootstrap(p *utils.Program, db *bolt.DB) (network Network) {
@@ -68,10 +68,10 @@ func EnsureBuckets(db *bolt.DB, network Network) (errors []error) {
 		db.Update(func(tx *bolt.Tx) (err error) {
 			_, err = tx.CreateBucketIfNotExists([]byte(fmt.Sprintf("node-%d", node.Id)))
 			errors = append(errors, err)
-			return
+			return err
 		})
 	}
 
-	return
+	return errors
 }
 
