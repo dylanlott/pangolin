@@ -124,11 +124,11 @@ func Save (path string, object interface{}) error {
 	return err
 }
 
-func Load (path string, object interface{}) error {
+func Load (path string, object *DB) error {
 	file, err := os.Open(path)
 	if err == nil {
 		decoder := gob.NewDecoder(file)
-		err = decoder.Decode(object)
+		err = decoder.Decode(object.tree)
 	}
 	file.Close()
 	return err
@@ -139,14 +139,14 @@ func CreateTree () *llrb.LLRB {
 	return tree
 }
 
-func LoadTree () (*llrb.LLRB, error) { 
+func LoadTree () (DB, error) { 
 	if _, err := os.Stat(file); os.IsNotExist(err) {
 		fmt.Println("Database does not exist") // need to handle this
 	}
 
 	db := DB{}
-	tree := Load(file, &db)
-	fmt.Println(tree)
+	Load(file, &db)
+	fmt.Println(db)
 
-	return tree, nil
+	return db, nil
 }
