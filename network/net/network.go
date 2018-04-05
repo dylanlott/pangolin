@@ -38,8 +38,7 @@ func Bootstrap(p *utils.Program, db *bolt.DB) (network Network) {
 
 	// Generate nodes
 	for i, _ := range network {
-		network[i] = new(NetNode)
-		*network[i] = NetNode{Id: i}
+		network[i] = &NetNode{Id: i}
 	}
 
 	// Populate nodes' peers

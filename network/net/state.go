@@ -5,11 +5,11 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-type TxId int
-
-type Tx struct {
-	Id TxId
-}
+// type TxId int
+//
+// type Tx struct {
+// 	Id TxId
+// }
 
 type State struct {
 	Db     *bolt.DB
@@ -20,7 +20,8 @@ type Diff struct {
 	state1 *State
 	state2 *State
 	equal  bool
-	data   []Tx
+	data map[string]string
+	// data   []Tx
 }
 
 // TODO: return *[]TxId, *[]Tx
