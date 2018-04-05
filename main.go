@@ -31,6 +31,7 @@ type Blob struct {
 }
 
 func (db *DB) Set (blob *Blob) llrb.Item {
+	fmt.Println("blob", blob)
 	return db.tree.ReplaceOrInsert(blob)
 }
 
@@ -67,6 +68,7 @@ func main() {
 	db, err := LoadTree()
 	Check(err)
 
+	fmt.Println("blob", blob)
 	db.Set(blob)
 	// writeErr := Save(file, tree)
 	// Check(writeErr)
@@ -124,13 +126,17 @@ func Save (path string, object interface{}) error {
 	return err
 }
 
-func Load (path string, object *DB) error {
+func Load (path string, db *DB) error {
 	file, err := os.Open(path)
 	if err == nil {
 		decoder := gob.NewDecoder(file)
-		err = decoder.Decode(object.tree)
+		err = decoder.Decode(db.tree)
 	}
 	file.Close()
+
+	if db.tree == nil {
+		db.tree = &llrb.LLRB{}
+	}
 	return err
 }
 
@@ -139,14 +145,14 @@ func CreateTree () *llrb.LLRB {
 	return tree
 }
 
-func LoadTree () (DB, error) { 
+func LoadTree () (*DB, error) {
 	if _, err := os.Stat(file); os.IsNotExist(err) {
 		fmt.Println("Database does not exist") // need to handle this
 	}
 
-	db := DB{}
-	Load(file, &db)
-	fmt.Println(db)
+	db := &DB{}
+	Load(file, db)
+	fmt.Println("db", db)
 
 	return db, nil
 }
