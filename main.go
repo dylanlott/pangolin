@@ -8,6 +8,7 @@ import (
 	"github.com/petar/GoLLRB/llrb"
 	"os"
 	"runtime"
+	"io"
 )
 
 const DatabasePath = "/tmp/pangolin.db"
@@ -124,12 +125,12 @@ func Save (path string, object interface{}) error {
 	return err
 }
 
-func Load () error {
+func Load() (db *DB, err error) {
 	if _, err := os.Stat(DatabasePath); os.IsNotExist(err) {
 		fmt.Println("Database does not exist") // need to handle this
 	}
 
-	db := &DB{}
+	db = &DB{new(llrb.LLRB)}
 
 	file, err := os.Open(DatabasePath)
 	if err == nil {
@@ -138,10 +139,11 @@ func Load () error {
 	}
 	file.Close()
 
-	if db.tree == nil {
+	if err.Error() == io.EOF.Error() {
+		err = nil
 		db.tree = &llrb.LLRB{}
 	}
-	return err
+	return db, err
 }
 
 func CreateTree () *llrb.LLRB {
