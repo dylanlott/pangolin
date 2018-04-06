@@ -8,6 +8,7 @@ import (
 	"github.com/petar/GoLLRB/llrb"
 	"os"
 	"runtime"
+	"io"
 )
 
 const DatabasePath = "/tmp/pangolin.db"
@@ -18,28 +19,28 @@ type DB struct {
 
 // interface needs work
 type Database interface {
-	Get (id int) 
-	Set (blob Blob)
-	Has (id int)
-	Delete (id int)
-	New (llrb.LLRB)
+	Get(id int)
+	Set(blob Blob)
+	Has(id int)
+	Delete(id int)
+	New(llrb.LLRB)
 }
 
 type Blob struct {
-	id int `json:"id"`
+	id   int    `json:"id"`
 	data string `json:"data"`
 }
 
-func (db *DB) Set (blob *Blob) llrb.Item {
+func (db *DB) Set(blob *Blob) llrb.Item {
 	return db.tree.ReplaceOrInsert(blob)
 }
 
-func (db *DB) Get (id int) llrb.Item {
+func (db *DB) Get(id int) llrb.Item {
 	blob := &Blob{id: id}
 	return db.tree.Get(blob)
 }
 
-func (b *Blob) Less (than llrb.Item) bool {
+func (b *Blob) Less(than llrb.Item) bool {
 	if v, ok := than.(*Blob); ok {
 		return b.id < v.id
 	}
@@ -49,13 +50,13 @@ func (b *Blob) Less (than llrb.Item) bool {
 func main() {
 	fmt.Println("pangolin is starting up")
 
- 	http.HandleFunc("/", getSpec)
+	http.HandleFunc("/", getSpec)
 
 	// tree := CreateTree() 
 
 	// db := DB{tree}
 
-	// blob := &Blob{id: 1, data: "1234"}
+	blob := &Blob{id: 1, data: "1234"}
 
 	// db.Set(blob)
 
@@ -64,17 +65,16 @@ func main() {
 	// fmt.Println(tree.Get(queryBlob))
 	// fmt.Println(tree.Has(queryBlob))
 
-	db := Load()
-	fmt.Println(db)
-	// Check(err)
+	db, err := Load()
+	Check(err)
 
-	// db.Set(blob)
+	db.Set(blob)
 	// writeErr := Save(file, tree)
 	// Check(writeErr)
 
-  if err := http.ListenAndServe(":8080", nil); err != nil {
-    panic(err)
-  }
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		panic(err)
+	}
 }
 
 func Check(e error) {
@@ -86,28 +86,28 @@ func Check(e error) {
 }
 
 type spec struct {
-	Version string `json:"version"`
+	Version string   `json:"version"`
 	Buckets []string `json:"buckets"`
 }
 
-func getBuckets () string { 
+func getBuckets() string {
 	return "none"
 }
 
-func NewSpec (version, buckets string) spec {
+func NewSpec(version, buckets string) spec {
 	return spec{
 		Version: version,
 		Buckets: []string{buckets},
 	}
 }
 
-func getSpec (w http.ResponseWriter, r *http.Request) {
+func getSpec(w http.ResponseWriter, r *http.Request) {
 	response := NewSpec("0.0.1", getBuckets())
 	message, _ := json.Marshal(response)
-  w.Write([]byte(message))
+	w.Write([]byte(message))
 }
 
-func HandlePost (w http.ResponseWriter, r *http.Request) {
+func HandlePost(w http.ResponseWriter, r *http.Request) {
 	response := r.Body
 	// insert leaf into db tree
 	// save tree to db
@@ -115,11 +115,11 @@ func HandlePost (w http.ResponseWriter, r *http.Request) {
   w.Write([]byte(message))
 }
 
-func HandleGet (w http.ResponseWriter, r *http.Request) {
+func HandleGet(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func Save (path string, object interface{}) error {
+func Save(path string, object interface{}) error {
 	file, err := os.Create(path)
 	if err == nil {
 		encoder := gob.NewEncoder(file)
@@ -129,12 +129,12 @@ func Save (path string, object interface{}) error {
 	return err
 }
 
-func Load () error {
+func Load() (db *DB, err error) {
 	if _, err := os.Stat(DatabasePath); os.IsNotExist(err) {
 		fmt.Println("Database does not exist") // need to handle this
 	}
 
-	db := &DB{}
+	db = &DB{new(llrb.LLRB)}
 
 	file, err := os.Open(DatabasePath)
 	if err == nil {
@@ -143,13 +143,14 @@ func Load () error {
 	}
 	file.Close()
 
-	if db.tree == nil {
+	if err.Error() == io.EOF.Error() {
+		err = nil
 		db.tree = &llrb.LLRB{}
 	}
-	return err
+	return db, err
 }
 
-func CreateTree () *llrb.LLRB {
+func CreateTree() *llrb.LLRB {
 	tree := llrb.New()
 	return tree
 }
