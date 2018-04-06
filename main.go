@@ -19,28 +19,28 @@ type DB struct {
 
 // interface needs work
 type Database interface {
-	Get (id int) 
-	Set (blob Blob)
-	Has (id int)
-	Delete (id int)
-	New (llrb.LLRB)
+	Get(id int)
+	Set(blob Blob)
+	Has(id int)
+	Delete(id int)
+	New(llrb.LLRB)
 }
 
 type Blob struct {
-	id int `json:"id"`
+	id   int    `json:"id"`
 	data string `json:"data"`
 }
 
-func (db *DB) Set (blob *Blob) llrb.Item {
+func (db *DB) Set(blob *Blob) llrb.Item {
 	return db.tree.ReplaceOrInsert(blob)
 }
 
-func (db *DB) Get (id int) llrb.Item {
+func (db *DB) Get(id int) llrb.Item {
 	blob := &Blob{id: id}
 	return db.tree.Get(blob)
 }
 
-func (b *Blob) Less (than llrb.Item) bool {
+func (b *Blob) Less(than llrb.Item) bool {
 	if v, ok := than.(*Blob); ok {
 		return b.id < v.id
 	}
@@ -50,7 +50,7 @@ func (b *Blob) Less (than llrb.Item) bool {
 func main() {
 	fmt.Println("pangolin is starting up")
 
- 	http.HandleFunc("/", getSpec)
+	http.HandleFunc("/", getSpec)
 
 	// tree := CreateTree() 
 
@@ -72,9 +72,9 @@ func main() {
 	// writeErr := Save(file, tree)
 	// Check(writeErr)
 
-  if err := http.ListenAndServe(":8080", nil); err != nil {
-    panic(err)
-  }
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		panic(err)
+	}
 }
 
 func Check(e error) {
@@ -86,36 +86,36 @@ func Check(e error) {
 }
 
 type spec struct {
-	Version string `json:"version"`
+	Version string   `json:"version"`
 	Buckets []string `json:"buckets"`
 }
 
-func getBuckets () string { 
+func getBuckets() string {
 	return "none"
 }
 
-func NewSpec (version, buckets string) spec {
+func NewSpec(version, buckets string) spec {
 	return spec{
 		Version: version,
 		Buckets: []string{buckets},
 	}
 }
 
-func getSpec (w http.ResponseWriter, r *http.Request) {
+func getSpec(w http.ResponseWriter, r *http.Request) {
 	response := NewSpec("0.0.1", getBuckets())
 	message, _ := json.Marshal(response)
-  w.Write([]byte(message))
+	w.Write([]byte(message))
 }
 
-func HandlePost (w http.ResponseWriter, r *http.Request) {
-
-}
-
-func HandleGet (w http.ResponseWriter, r *http.Request) {
+func HandlePost(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func Save (path string, object interface{}) error {
+func HandleGet(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func Save(path string, object interface{}) error {
 	file, err := os.Create(path)
 	if err == nil {
 		encoder := gob.NewEncoder(file)
@@ -146,7 +146,7 @@ func Load() (db *DB, err error) {
 	return db, err
 }
 
-func CreateTree () *llrb.LLRB {
+func CreateTree() *llrb.LLRB {
 	tree := llrb.New()
 	return tree
 }
