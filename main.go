@@ -10,7 +10,7 @@ import (
 	"runtime"
 )
 
-const file = "/tmp/pangolin.db"
+const DatabasePath = "/tmp/pangolin.db"
 
 type DB struct {
 	tree *llrb.LLRB
@@ -31,7 +31,6 @@ type Blob struct {
 }
 
 func (db *DB) Set (blob *Blob) llrb.Item {
-	fmt.Println("blob", blob)
 	return db.tree.ReplaceOrInsert(blob)
 }
 
@@ -56,7 +55,7 @@ func main() {
 
 	// db := DB{tree}
 
-	blob := &Blob{id: 1, data: "1234"}
+	// blob := &Blob{id: 1, data: "1234"}
 
 	// db.Set(blob)
 
@@ -65,11 +64,11 @@ func main() {
 	// fmt.Println(tree.Get(queryBlob))
 	// fmt.Println(tree.Has(queryBlob))
 
-	db, err := LoadTree()
-	Check(err)
+	db := Load()
+	fmt.Println(db)
+	// Check(err)
 
-	fmt.Println("blob", blob)
-	db.Set(blob)
+	// db.Set(blob)
 	// writeErr := Save(file, tree)
 	// Check(writeErr)
 
@@ -109,7 +108,11 @@ func getSpec (w http.ResponseWriter, r *http.Request) {
 }
 
 func HandlePost (w http.ResponseWriter, r *http.Request) {
-
+	response := r.Body
+	// insert leaf into db tree
+	// save tree to db
+	message, _ := json.Marshal(response)
+  w.Write([]byte(message))
 }
 
 func HandleGet (w http.ResponseWriter, r *http.Request) {
@@ -126,8 +129,14 @@ func Save (path string, object interface{}) error {
 	return err
 }
 
-func Load (path string, db *DB) error {
-	file, err := os.Open(path)
+func Load () error {
+	if _, err := os.Stat(DatabasePath); os.IsNotExist(err) {
+		fmt.Println("Database does not exist") // need to handle this
+	}
+
+	db := &DB{}
+
+	file, err := os.Open(DatabasePath)
 	if err == nil {
 		decoder := gob.NewDecoder(file)
 		err = decoder.Decode(db.tree)
@@ -143,16 +152,4 @@ func Load (path string, db *DB) error {
 func CreateTree () *llrb.LLRB {
 	tree := llrb.New()
 	return tree
-}
-
-func LoadTree () (*DB, error) {
-	if _, err := os.Stat(file); os.IsNotExist(err) {
-		fmt.Println("Database does not exist") // need to handle this
-	}
-
-	db := &DB{}
-	Load(file, db)
-	fmt.Println("db", db)
-
-	return db, nil
 }
