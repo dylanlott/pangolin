@@ -108,7 +108,11 @@ func getSpec (w http.ResponseWriter, r *http.Request) {
 }
 
 func HandlePost (w http.ResponseWriter, r *http.Request) {
-
+	response := r.Body
+	// insert leaf into db tree
+	// save tree to db
+	message, _ := json.Marshal(response)
+  w.Write([]byte(message))
 }
 
 func HandleGet (w http.ResponseWriter, r *http.Request) {
