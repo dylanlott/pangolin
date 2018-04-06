@@ -31,6 +31,7 @@ type Blob struct {
 }
 
 func (db *DB) Set (blob *Blob) llrb.Item {
+	fmt.Println("blob", blob)
 	return db.tree.ReplaceOrInsert(blob)
 }
 
@@ -51,21 +52,26 @@ func main() {
 
  	http.HandleFunc("/", getSpec)
 
-	tree := CreateTree() 
+	// tree := CreateTree() 
 
-	db := DB{tree}
+	// db := DB{tree}
 
 	blob := &Blob{id: 1, data: "1234"}
 
+	// db.Set(blob)
+
+	// queryBlob := &Blob{id: 1}
+
+	// fmt.Println(tree.Get(queryBlob))
+	// fmt.Println(tree.Has(queryBlob))
+
+	db, err := LoadTree()
+	Check(err)
+
+	fmt.Println("blob", blob)
 	db.Set(blob)
-
-	queryBlob := &Blob{id: 1}
-
-	fmt.Println(tree.Get(queryBlob))
-	fmt.Println(tree.Has(queryBlob))
-
-	writeErr := Save(file, tree)
-	Check(writeErr)
+	// writeErr := Save(file, tree)
+	// Check(writeErr)
 
   if err := http.ListenAndServe(":8080", nil); err != nil {
     panic(err)
@@ -85,16 +91,19 @@ type spec struct {
 	Buckets []string `json:"buckets"`
 }
 
-func getBuckets () string {
+func getBuckets () string { 
 	return "none"
 }
 
-func getSpec (w http.ResponseWriter, r *http.Request) {
-	response := &spec{
-		Version: "0.0.1",
-		Buckets: []string{getBuckets()},
+func NewSpec (version, buckets string) spec {
+	return spec{
+		Version: version,
+		Buckets: []string{buckets},
 	}
+}
 
+func getSpec (w http.ResponseWriter, r *http.Request) {
+	response := NewSpec("0.0.1", getBuckets())
 	message, _ := json.Marshal(response)
   w.Write([]byte(message))
 }
@@ -117,17 +126,33 @@ func Save (path string, object interface{}) error {
 	return err
 }
 
-func Load (path string, object interface{}) error {
+func Load (path string, db *DB) error {
 	file, err := os.Open(path)
 	if err == nil {
 		decoder := gob.NewDecoder(file)
-		err = decoder.Decode(object)
+		err = decoder.Decode(db.tree)
 	}
 	file.Close()
+
+	if db.tree == nil {
+		db.tree = &llrb.LLRB{}
+	}
 	return err
 }
 
 func CreateTree () *llrb.LLRB {
 	tree := llrb.New()
 	return tree
+}
+
+func LoadTree () (*DB, error) {
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		fmt.Println("Database does not exist") // need to handle this
+	}
+
+	db := &DB{}
+	Load(file, db)
+	fmt.Println("db", db)
+
+	return db, nil
 }

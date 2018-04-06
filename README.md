@@ -3,6 +3,8 @@ Pangolin
 
 Pangolin is a database written in Go.
 
+We have hopes of making this distributed some day.
+
 ## Roadmap
 - [ ] Create a data directory
 - [ ] Create a bucket
