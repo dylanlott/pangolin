@@ -1,9 +1,16 @@
 package db
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
+	"log"
+	"os"
+	"path/filepath"
+	"sync"
 
 	"github.com/derekparker/trie"
+	homedir "github.com/mitchellh/go-homedir"
 )
 
 // Response struct
@@ -16,10 +23,43 @@ type DB struct {
 	trie trie.Trie
 }
 
+var pangolinDB bytes.Buffer
+
+// declare mutex for safe writes
+var mutex = &sync.Mutex{}
+
+var t trie.Trie
+
 // NewDatabase will create a new database pointer
 func NewDatabase() (*DB, error) {
+
+	dir, err := homedir.Dir()
+	if err != nil {
+		log.Print("error finding home directory")
+	}
+	fmt.Printf(dir)
+
+	if _, err := os.Stat(filepath.Join(dir, ".pangolin/pangolin.db")); err == nil {
+		fmt.Printf("file exists")
+		// load in file
+		file, err := os.Open(filepath.Join(dir, ".pangolin/pangollin.db"))
+		fmt.Printf("file %+v\n", file)
+		fmt.Printf("error opening file", err)
+
+		dec := gob.NewDecoder(&pangolinDB)
+		err = dec.Decode(file)
+		fmt.Printf("%q", &pangolinDB)
+	} else {
+		_, err := os.Create(filepath.Join(dir, ".pangolin/pangolin.db"))
+		if err != nil {
+			fmt.Printf("error creating file %s", err)
+		}
+	}
+
+	//enc := gob.NewEncoder(&pangolinDB)
+
 	t := trie.New()
-	fmt.Printf("trie: %+v\n", t)
+
 	return &DB{
 		trie: *t,
 	}, nil
@@ -28,8 +68,6 @@ func NewDatabase() (*DB, error) {
 // Get returns object with id of `id`
 func (db *DB) Get(key string) (Response, error) {
 	node, ok := db.trie.Find(key)
-	fmt.Printf("ok is %+v\n", ok)
-	fmt.Printf("found node %+v\n", node)
 	if !ok {
 		fmt.Printf("error getting key %s", key)
 	}
@@ -37,7 +75,7 @@ func (db *DB) Get(key string) (Response, error) {
 	fmt.Printf("META::: %+v\n", meta)
 
 	return Response{
-		Data:    node,
+		Data:    meta,
 		Success: true,
 	}, nil
 }
@@ -67,7 +105,7 @@ func (db *DB) Update(key string, data interface{}) (Response, error) {
 }
 
 // Delete will delete an object from the tree
-func (db *DB) Delete(id int) error {
+func (db *DB) Delete(id string) error {
 	return nil
 }
 
