@@ -2,7 +2,6 @@ package db
 
 import (
 	"bytes"
-	"encoding/gob"
 	"fmt"
 	"log"
 	"os"
@@ -19,46 +18,26 @@ type Response struct {
 	Success bool
 }
 
+// DB is the main struct exported out
 type DB struct {
 	trie trie.Trie
 }
 
 var pangolinDB bytes.Buffer
-
-// declare mutex for safe writes
 var mutex = &sync.Mutex{}
-
 var t trie.Trie
 
 // NewDatabase will create a new database pointer
 func NewDatabase() (*DB, error) {
-
 	dir, err := homedir.Dir()
 	if err != nil {
-		log.Print("error finding home directory")
+		return nil, err
 	}
-	fmt.Printf(dir)
-
-	if _, err := os.Stat(filepath.Join(dir, ".pangolin/pangolin.db")); err == nil {
-		fmt.Printf("file exists")
-		// load in file
-		file, err := os.Open(filepath.Join(dir, ".pangolin/pangollin.db"))
-		fmt.Printf("file %+v\n", file)
-		fmt.Printf("error opening file", err)
-
-		dec := gob.NewDecoder(&pangolinDB)
-		err = dec.Decode(file)
-		fmt.Printf("%q", &pangolinDB)
-	} else {
-		_, err := os.Create(filepath.Join(dir, ".pangolin/pangolin.db"))
-		if err != nil {
-			fmt.Printf("error creating file %s", err)
-		}
-	}
-
-	//enc := gob.NewEncoder(&pangolinDB)
 
 	t := trie.New()
+	f := filepath.Join(dir, ".pangolin")
+
+	log.Printf("starting trie %+v\n in %+v\n", t, f)
 
 	return &DB{
 		trie: *t,
@@ -67,15 +46,15 @@ func NewDatabase() (*DB, error) {
 
 // Get returns object with id of `id`
 func (db *DB) Get(key string) (Response, error) {
+	mutex.Lock()
 	node, ok := db.trie.Find(key)
 	if !ok {
 		fmt.Printf("error getting key %s", key)
 	}
-	meta := node.Meta()
-	fmt.Printf("META::: %+v\n", meta)
+	mutex.Unlock()
 
 	return Response{
-		Data:    meta,
+		Data:    node.Meta(),
 		Success: true,
 	}, nil
 }
@@ -94,10 +73,9 @@ func (db *DB) Insert(key string, data interface{}) (Response, error) {
 	}, nil
 }
 
-// Put inserts a value into the database
+// Update inserts a value into the database
 // If upsert is true, it will insert the data if the key is not found
 func (db *DB) Update(key string, data interface{}) (Response, error) {
-	fmt.Printf("%+v\n", data)
 	return Response{
 		Data:    data,
 		Success: true,
@@ -111,4 +89,29 @@ func (db *DB) Delete(id string) error {
 
 func (db *DB) getTrie() (trie.Trie, error) {
 	return db.trie, nil
+}
+
+func (db *DB) PangolinHomeDir() (string, error) {
+	dir, err := homedir.Dir()
+	f := filepath.Join(dir, ".pangolin")
+	return f, err
+}
+
+func createFile(path string) {
+	// detect if file exists
+	var _, err = os.Stat(path)
+
+	// create file if not exists
+	if os.IsNotExist(err) {
+		var file, err = os.Create(path)
+		checkError(err) //okay to call os.exit()
+		defer file.Close()
+	}
+}
+
+func checkError(err error) {
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(0)
+	}
 }
