@@ -15,33 +15,61 @@ import (
 
 var (
 	Error = errs.Class("pangolin_db_error")
+	pangolinDB bytes.Buffer
+	mutex = &sync.Mutex{}
+	t trie.Trie
 )
 
-// Response struct
+type Document struct {
+	Id	string
+	Data interface{}
+}
+
 type Response struct {
 	Data    interface{}
 	Success bool
+	Meta		interface{}
 }
 
 type Collection struct {
 	Name string
-	Meta map[interface{}]interface{}
+	Meta []Document
+	trie trie.Trie
 }
 
-// DB is the main struct exported out
 type DB struct {
 	trie trie.Trie
 	collections []*Collection
 }
 
-func (c Collection) NewCollection(name string) error {
-	// TODO: Make this create a collection and return pointer
-	return nil
+func NewCollection(name string) (*Collection) {
+	return &Collection{
+		Name: name,
+		Meta: nil,
+	}
 }
 
-var pangolinDB bytes.Buffer
-var mutex = &sync.Mutex{}
-var t trie.Trie
+func SaveCollection(name string, coll Collection) error {
+	home, err := homedir.Dir()
+	path := filepath.Join(home, ".pangolin", name)
+	log.Printf("saving to collection %s", path)
+	err = Save(path, coll)
+	if err != nil {
+		return Error.New("Error saving collection")
+	}
+	return err
+}
+
+func LoadCollection(name string) (Collection) {
+	dir, err := homedir.Dir()
+	path := filepath.Join(dir, ".pangolin")
+	var coll Collection
+	err = Load(path, coll)
+	if err != nil {
+		log.Fatal("Error loading collection", err)
+	}
+	return coll
+}
 
 // NewDatabase will create a new database pointer
 func NewDatabase() (*DB, error) {
@@ -53,7 +81,7 @@ func NewDatabase() (*DB, error) {
 	t := trie.New()
 	f := filepath.Join(dir, ".pangolin")
 
-	log.Printf("starting trie %+v\n in %+v\n", t, f)
+	log.Printf("starting new pangolin DB\n trie: %+v\n filepath: %+v\n", t, f)
 
 	return &DB{
 		trie: *t,
