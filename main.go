@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"./database"
+	"github.com/dylanlott/pangolin/database"
 )
 
 func main() {

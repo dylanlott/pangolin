@@ -7,10 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
-	"errors"
 
 	"github.com/derekparker/trie"
+	"github.com/zeebo/errs"
 	homedir "github.com/mitchellh/go-homedir"
+)
+
+var (
+	Error = errs.Class("pangolin_db_error")
 )
 
 // Response struct
@@ -19,9 +23,20 @@ type Response struct {
 	Success bool
 }
 
+type Collection struct {
+	Name string
+	Meta map[interface{}]interface{}
+}
+
 // DB is the main struct exported out
 type DB struct {
 	trie trie.Trie
+	collections []*Collection
+}
+
+func (c Collection) NewCollection(name string) error {
+	// TODO: Make this create a collection and return pointer
+	return nil
 }
 
 var pangolinDB bytes.Buffer
@@ -72,6 +87,11 @@ func (db *DB) Insert(key string, data interface{}) (Response, error) {
 // Update inserts a value into the database
 // If upsert is true, it will insert the data if the key is not found
 func (db *DB) Update(key string, data interface{}) (Response, error) {
+	mutex.Lock()
+	db.trie.Remove(key)
+	db.trie.Add(key, data)
+	mutex.Unlock()
+
 	return Response{
 		Data:    data,
 		Success: true,
@@ -79,15 +99,24 @@ func (db *DB) Update(key string, data interface{}) (Response, error) {
 }
 
 // Delete will delete an object from the tree
-func (db *DB) Delete(key string) error {
+func (db *DB) Delete(key string) (Response, error) {
 	mutex.Lock()
 	db.trie.Remove(key)
-	node, ok := db.trie.Find(key)
+	ok := db.trie.HasKeysWithPrefix(key)
 	mutex.Unlock()
-	if node == nil && ok {
-		return nil
+	if !ok {
+		log.Printf("deleted key %s", key)
+		return Response{
+				Data: key,
+				Success: true,
+		}, nil
 	}
-	return errors.New("Delete Error: Key not deleted")
+	log.Printf("could not delete key %s", key)
+
+	return Response{
+		Data: nil, 
+		Success: false,
+	}, Error.New("Delete Error: Key not deleted")
 }
 
 func (db *DB) getTrie() (trie.Trie, error) {
@@ -110,6 +139,16 @@ func createFile(path string) {
 		checkError(err) //okay to call os.exit()
 		defer file.Close()
 	}
+}
+
+func (db *DB) createCollection(collection string) error {
+	home, err := db.PangolinHomeDir()
+	if err != nil {
+		return err
+	}
+	collectionPath := filepath.Join(home, collection)
+	createFile(collectionPath)
+	return nil
 }
 
 func checkError(err error) {
