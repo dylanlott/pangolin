@@ -49,10 +49,19 @@ func NewCollection(name string) (*Collection) {
 	}
 }
 
-func SaveCollection(name string, coll Collection) error {
+func getPath() (string, error) {
 	home, err := homedir.Dir()
-	path := filepath.Join(home, ".pangolin", name)
-	log.Printf("saving to collection %s", path)
+	if err != nil {
+		return "", err
+	}
+	path := filepath.Join(home, ".pangolin")
+	return path, nil
+}
+
+func SaveCollection(name string, coll Collection) error {
+	home, err := getPath() 
+	path := filepath.Join(home, name)
+	log.Printf("saving to collection %s at %s", name, path)
 	err = Save(path, coll)
 	if err != nil {
 		return Error.New("Error saving collection")
