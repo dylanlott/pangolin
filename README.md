@@ -25,6 +25,13 @@ An example response would look like
   {"version":"0.0.1","buckets":["none"]}
 ```
 
+## Querying 
+
+I'm looking at using something like this for querying
+[https://github.com/elgs/jsonql]()
+or 
+[https://medium.com/@thedevsaddam/query-json-data-using-golang-76b6ab974dd6]()
+
 ## Testing 
 Install dependencies, then you can run 
 

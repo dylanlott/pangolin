@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"errors"
 
 	"github.com/derekparker/trie"
 	homedir "github.com/mitchellh/go-homedir"
@@ -59,11 +60,6 @@ func (db *DB) Get(key string) (Response, error) {
 	}, nil
 }
 
-// Query will find documents that match the query and return them
-func (db *DB) Query() error {
-	return nil
-}
-
 // Insert puts a JSON blob into the collection
 func (db *DB) Insert(key string, data interface{}) (Response, error) {
 	db.trie.Add(key, data)
@@ -83,8 +79,15 @@ func (db *DB) Update(key string, data interface{}) (Response, error) {
 }
 
 // Delete will delete an object from the tree
-func (db *DB) Delete(id string) error {
-	return nil
+func (db *DB) Delete(key string) error {
+	mutex.Lock()
+	db.trie.Remove(key)
+	node, ok := db.trie.Find(key)
+	mutex.Unlock()
+	if node == nil && ok {
+		return nil
+	}
+	return errors.New("Delete Error: Key not deleted")
 }
 
 func (db *DB) getTrie() (trie.Trie, error) {
