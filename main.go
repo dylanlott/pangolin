@@ -9,28 +9,35 @@ import (
 )
 
 func main() {
-	// err := db.NewDatabase()
-	// t := trie.New()
-	// fmt.Printf("new trie %+v\n", t)
+	// InsertData()
+	LoadCollection()
+}
 
-	// coll, err := db.NewCollection("name", *t)
-	// fmt.Printf("Coll: %+v\n", coll)
+func InsertData() {
+	err := db.NewDatabase()
+	t := trie.New()
+	fmt.Printf("new trie %+v\n", t)
 
-	// if err != nil {
-	// 	fmt.Printf("ERROR: %+v\n", err)
-	// }
+	coll, err := db.NewCollection("name", *t)
+	fmt.Printf("Coll: %+v\n", coll)
 
-	// data := make(map[string]interface{})
-	// data["hello"] = "world"
-	// data["integer"] = 1234
-	// data["float"] =  1234.56
-	// 	
-	// err = db.Insert(data, coll.Name)
+	if err != nil {
+		fmt.Printf("ERROR: %+v\n", err)
+	}
 
-	// if err != nil {
-	// 	fmt.Printf("Error inserting data %+v\n", err)
-	// }
+	data := make(map[string]interface{})
+	data["hello"] = "world"
+	data["integer"] = 1234
+	data["float"] =  1234.56
+		
+	err = db.Insert(data, coll.Name)
 
+	if err != nil {
+		fmt.Printf("Error inserting data %+v\n", err)
+	}
+}
+
+func LoadCollection() {
 	err := db.NewDatabase()
 	if err != nil {
 		log.Printf("Error creating database: %+v\n", err)
