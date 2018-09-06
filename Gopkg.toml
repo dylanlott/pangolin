@@ -27,8 +27,16 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/petar/GoLLRB"
+  name = "github.com/derekparker/trie"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
 
 [prune]
   go-tests = true
   unused-packages = true
+
+[[constraint]]
+  name = "github.com/zeebo/errs"
+  version = "1.0.0"

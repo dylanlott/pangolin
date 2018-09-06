@@ -1,156 +1,34 @@
 package main
 
 import (
-	"encoding/gob"
-	"encoding/json"
 	"fmt"
-	"net/http"
-	"github.com/petar/GoLLRB/llrb"
-	"os"
-	"runtime"
-	"io"
+
+	"github.com/derekparker/trie"
+	"github.com/dylanlott/pangolin/database"
 )
 
-const DatabasePath = "/tmp/pangolin.db"
-
-type DB struct {
-	tree *llrb.LLRB
-}
-
-// interface needs work
-type Database interface {
-	Get(id int)
-	Set(blob Blob)
-	Has(id int)
-	Delete(id int)
-	New(llrb.LLRB)
-}
-
-type Blob struct {
-	id   int    `json:"id"`
-	data string `json:"data"`
-}
-
-func (db *DB) Set(blob *Blob) llrb.Item {
-	return db.tree.ReplaceOrInsert(blob)
-}
-
-func (db *DB) Get(id int) llrb.Item {
-	blob := &Blob{id: id}
-	return db.tree.Get(blob)
-}
-
-func (b *Blob) Less(than llrb.Item) bool {
-	if v, ok := than.(*Blob); ok {
-		return b.id < v.id
-	}
-	return false
-}
-
 func main() {
-	fmt.Println("pangolin is starting up")
+	err := db.NewDatabase()
+	t := trie.New()
+	fmt.Printf("new trie %+v\n", t)
 
-	http.HandleFunc("/", getSpec)
+	coll, err := db.NewCollection("name", *t)
+	fmt.Printf("Coll: %+v\n", coll)
 
-	// tree := CreateTree() 
-
-	// db := DB{tree}
-
-	blob := &Blob{id: 1, data: "1234"}
-
-	// db.Set(blob)
-
-	// queryBlob := &Blob{id: 1}
-
-	// fmt.Println(tree.Get(queryBlob))
-	// fmt.Println(tree.Has(queryBlob))
-
-	db, err := Load()
-	Check(err)
-
-	db.Set(blob)
-	// writeErr := Save(file, tree)
-	// Check(writeErr)
-
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		panic(err)
-	}
-}
-
-func Check(e error) {
-	if e != nil {
-		_, file, line, _ := runtime.Caller(1)
-		fmt.Println(line, "\t", file, "\n", e)
-		os.Exit(1)
-	}
-}
-
-type spec struct {
-	Version string   `json:"version"`
-	Buckets []string `json:"buckets"`
-}
-
-func getBuckets() string {
-	return "none"
-}
-
-func NewSpec(version, buckets string) spec {
-	return spec{
-		Version: version,
-		Buckets: []string{buckets},
-	}
-}
-
-func getSpec(w http.ResponseWriter, r *http.Request) {
-	response := NewSpec("0.0.1", getBuckets())
-	message, _ := json.Marshal(response)
-	w.Write([]byte(message))
-}
-
-func HandlePost(w http.ResponseWriter, r *http.Request) {
-	response := r.Body
-	// insert leaf into db tree
-	// save tree to db
-	message, _ := json.Marshal(response)
-  w.Write([]byte(message))
-}
-
-func HandleGet(w http.ResponseWriter, r *http.Request) {
-
-}
-
-func Save(path string, object interface{}) error {
-	file, err := os.Create(path)
-	if err == nil {
-		encoder := gob.NewEncoder(file)
-		encoder.Encode(object)
-	}
-	file.Close()
-	return err
-}
-
-func Load() (db *DB, err error) {
-	if _, err := os.Stat(DatabasePath); os.IsNotExist(err) {
-		fmt.Println("Database does not exist") // need to handle this
+	if err != nil {
+		fmt.Printf("ERROR: %+v\n", err)
 	}
 
-	db = &DB{new(llrb.LLRB)}
+	data := make(map[string]interface{})
+	data["hello"] = "world"
+	data["integer"] = 1234
+	data["float"] =  1234.56
+		
+	err = db.Insert(data, coll.Name)
 
-	file, err := os.Open(DatabasePath)
-	if err == nil {
-		decoder := gob.NewDecoder(file)
-		err = decoder.Decode(db.tree)
+	if err != nil {
+		fmt.Printf("Error inserting data %+v\n", err)
 	}
-	file.Close()
 
-	if err.Error() == io.EOF.Error() {
-		err = nil
-		db.tree = &llrb.LLRB{}
-	}
-	return db, err
-}
-
-func CreateTree() *llrb.LLRB {
-	tree := llrb.New()
-	return tree
+	return
 }

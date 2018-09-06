@@ -3,13 +3,25 @@
 
 [[projects]]
   branch = "master"
-  name = "github.com/petar/GoLLRB"
-  packages = ["llrb"]
-  revision = "53be0d36a84c2a886ca057d34b6aa4468df9ccb4"
+  name = "github.com/derekparker/trie"
+  packages = ["."]
+  revision = "e608c2733dc704cd4a73f825f4acab8f3c3d4d15"
+
+[[projects]]
+  branch = "master"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  revision = "58046073cbffe2f25d425fe1331102f55cf719de"
+
+[[projects]]
+  name = "github.com/zeebo/errs"
+  packages = ["."]
+  revision = "631dbed224b5670a1e8adc5f60fc4b7fc1680d70"
+  version = "v1.0.0"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d2ba3c49facb3bddea71ab753345aa553609a794a6ae714c164cb5ffa5c43c58"
+  inputs-digest = "03c071a5115a402290f0f478a35120c172c24f1a0373d1e8b58fe5b273776663"
   solver-name = "gps-cdcl"
   solver-version = 1
