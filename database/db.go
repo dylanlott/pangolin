@@ -69,7 +69,7 @@ func NewDocument(data interface{}) (Document, error) {
 
 // NewCollection creates a new Collection, creates the file, saves it,
 // and returns a Collection or an error
-func NewCollection(name string, trie trie.Trie) (Collection, error) {
+func NewCollection(name string, trie trie.Trie) (*Collection, error) {
 	coll := Collection{
 		Name: name,
 		Meta: nil,
@@ -80,7 +80,7 @@ func NewCollection(name string, trie trie.Trie) (Collection, error) {
 	err := SaveCollection(name, coll)
 	if err != nil {
 		log.Printf("error saving collection", err)
-		return Collection{
+		return &Collection{
 			Name: name,
 			Meta: nil,
 			Data: nil,
@@ -90,7 +90,7 @@ func NewCollection(name string, trie trie.Trie) (Collection, error) {
 
 	log.Printf("created new collection %+v\n", coll)
 
-	return coll, nil
+	return &coll, nil
 }
 
 func getPath() (string, error) {
@@ -120,7 +120,7 @@ func SaveCollection(name string, coll Collection) error {
 func LoadCollection(name string) Collection {
 	dir, err := homedir.Dir()
 	path := filepath.Join(dir, ".pangolin", name)
-	log.Printf("gathering collection from path %s", path)
+	log.Printf("loading collection from path %s", path)
 	var coll *Collection = &Collection{}
 	err = Load(path, coll)
 	if err != nil {
