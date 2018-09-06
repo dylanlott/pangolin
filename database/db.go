@@ -9,44 +9,88 @@ import (
 	"sync"
 
 	"github.com/derekparker/trie"
-	"github.com/zeebo/errs"
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/zeebo/errs"
 )
 
 var (
-	Error = errs.Class("pangolin_db_error")
+	// Error is the main error class for this package
+	Error      = errs.Class("ERRPANGOLIN")
 	pangolinDB bytes.Buffer
-	mutex = &sync.Mutex{}
-	t trie.Trie
+	mutex      = &sync.Mutex{}
+	t          trie.Trie
 )
 
+// Document is the struct that each item in the database
+// is built with
 type Document struct {
-	Id	string
+	ID   string
 	Data interface{}
 }
 
+// Response struct formats responses from the database to external callers
 type Response struct {
 	Data    interface{}
 	Success bool
-	Meta		interface{}
+	Meta    interface{}
 }
 
+// Collection is the struct that files are read into when opened
 type Collection struct {
 	Name string
-	Meta []Document
-	trie trie.Trie
+	Data []Document
+	Meta interface{}
+	Trie trie.Trie
 }
 
+// DB is the struct that the entire database uses
 type DB struct {
-	trie trie.Trie
+	trie        trie.Trie
 	collections []*Collection
 }
 
-func NewCollection(name string) (*Collection) {
-	return &Collection{
+// NewDocument creates a new document with a valid, unique UUID and
+// and returns a Document or an error
+func NewDocument(data interface{}) (Document, error) {
+	uuid, err := newUUID()
+	if err != nil {
+		return Document{}, nil
+	}
+
+	log.Printf("created new document %+v\n", Document{
+		Data: data,
+	})
+
+	return Document{
+		ID:   uuid,
+		Data: data,
+	}, nil
+}
+
+// NewCollection creates a new Collection, creates the file, saves it,
+// and returns a Collection or an error
+func NewCollection(name string, trie trie.Trie) (Collection, error) {
+	coll := Collection{
 		Name: name,
 		Meta: nil,
+		Data: nil,
+		Trie: trie,
 	}
+
+	err := SaveCollection(name, coll)
+	if err != nil {
+		log.Printf("error saving collection", err)
+		return Collection{
+			Name: name,
+			Meta: nil,
+			Data: nil,
+			Trie: trie,
+		}, err
+	}
+
+	log.Printf("created new collection %+v\n", coll)
+
+	return coll, nil
 }
 
 func getPath() (string, error) {
@@ -58,8 +102,10 @@ func getPath() (string, error) {
 	return path, nil
 }
 
+// SaveCollection is a helper function that takes a Collection
+// and saves it. If the file doesn't exist, it will create it.
 func SaveCollection(name string, coll Collection) error {
-	home, err := getPath() 
+	home, err := getPath()
 	path := filepath.Join(home, name)
 	log.Printf("saving to collection %s at %s", name, path)
 	err = Save(path, coll)
@@ -69,32 +115,28 @@ func SaveCollection(name string, coll Collection) error {
 	return err
 }
 
-func LoadCollection(name string) (Collection) {
+// LoadCollection will read a file Collection into a Collection
+// struct and returns that Collection
+func LoadCollection(name string) Collection {
 	dir, err := homedir.Dir()
-	path := filepath.Join(dir, ".pangolin")
-	var coll Collection
+	path := filepath.Join(dir, ".pangolin", name)
+	log.Printf("gathering collection from path %s", path)
+	var coll *Collection = &Collection{}
 	err = Load(path, coll)
 	if err != nil {
-		log.Fatal("Error loading collection", err)
+		log.Fatal("Error loading collection: ", err)
 	}
-	return coll
+	return *coll
 }
 
-// NewDatabase will create a new database pointer
-func NewDatabase() (*DB, error) {
-	dir, err := homedir.Dir()
-	if err != nil {
-		return nil, err
-	}
-
-	t := trie.New()
-	f := filepath.Join(dir, ".pangolin")
-
-	log.Printf("starting new pangolin DB\n trie: %+v\n filepath: %+v\n", t, f)
-
-	return &DB{
-		trie: *t,
-	}, nil
+// NewDatabase will create a new database and setup the config file 
+// if it does not exist
+func NewDatabase() error {
+	home, err := PangolinHomeDir()
+	checkError(err)
+	createDirectory(filepath.Join(home))
+	createFile(filepath.Join(home, ".config"))
+	return nil
 }
 
 // Get returns object with id of `id`
@@ -112,8 +154,8 @@ func (db *DB) Get(key string) (Response, error) {
 	}, nil
 }
 
-// Insert puts a JSON blob into the collection
-func (db *DB) Insert(key string, data interface{}) (Response, error) {
+// InsertTrieKey puts a JSON blob into the collection
+func (db *DB) InsertTrieKey(key string, data interface{}) (Response, error) {
 	db.trie.Add(key, data)
 	return Response{
 		Data:    data,
@@ -121,9 +163,9 @@ func (db *DB) Insert(key string, data interface{}) (Response, error) {
 	}, nil
 }
 
-// Update inserts a value into the database
+// UpdateTrieKey inserts a value into the database
 // If upsert is true, it will insert the data if the key is not found
-func (db *DB) Update(key string, data interface{}) (Response, error) {
+func (db *DB) UpdateTrieKey(key string, data interface{}) (Response, error) {
 	mutex.Lock()
 	db.trie.Remove(key)
 	db.trie.Add(key, data)
@@ -135,8 +177,8 @@ func (db *DB) Update(key string, data interface{}) (Response, error) {
 	}, nil
 }
 
-// Delete will delete an object from the tree
-func (db *DB) Delete(key string) (Response, error) {
+// DeleteTrieKey will delete an object from the tree
+func (db *DB) DeleteTrieKey(key string) (Response, error) {
 	mutex.Lock()
 	db.trie.Remove(key)
 	ok := db.trie.HasKeysWithPrefix(key)
@@ -144,14 +186,14 @@ func (db *DB) Delete(key string) (Response, error) {
 	if !ok {
 		log.Printf("deleted key %s", key)
 		return Response{
-				Data: key,
-				Success: true,
+			Data:    key,
+			Success: true,
 		}, nil
 	}
 	log.Printf("could not delete key %s", key)
 
 	return Response{
-		Data: nil, 
+		Data:    nil,
 		Success: false,
 	}, Error.New("Delete Error: Key not deleted")
 }
@@ -160,26 +202,39 @@ func (db *DB) getTrie() (trie.Trie, error) {
 	return db.trie, nil
 }
 
-func (db *DB) PangolinHomeDir() (string, error) {
+// PangolinHomeDir returns a string that is the home directory
+// for Pangolin (defaults to `~/.pangolin`
+func PangolinHomeDir() (string, error) {
 	dir, err := homedir.Dir()
 	f := filepath.Join(dir, ".pangolin")
 	return f, err
 }
 
 func createFile(path string) {
-	// detect if file exists
 	var _, err = os.Stat(path)
 
-	// create file if not exists
 	if os.IsNotExist(err) {
 		var file, err = os.Create(path)
-		checkError(err) //okay to call os.exit()
+		if err != nil {
+			fmt.Printf("can't create file %s - error: %s \n", file, err)
+		}
 		defer file.Close()
+		checkError(err)
 	}
 }
 
-func (db *DB) createCollection(collection string) error {
-	home, err := db.PangolinHomeDir()
+func createDirectory(path string) {
+	var _, err = os.Stat(path)
+	if os.IsNotExist(err) {
+		var  err = os.MkdirAll(path, 0755)
+		if err != nil {
+			fmt.Printf("can't create directory %s", err)
+		}
+	}
+}
+
+func (db *DB) createCollectionFile(collection string) error {
+	home, err := PangolinHomeDir()
 	if err != nil {
 		return err
 	}
@@ -190,7 +245,7 @@ func (db *DB) createCollection(collection string) error {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf("ERROR", err.Error())
 		os.Exit(0)
 	}
 }

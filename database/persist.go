@@ -1,67 +1,73 @@
 package db
 
 import (
+	"bytes"
+	"crypto/rand"
+	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"sync"
-	"encoding/json"
-	"bytes"
-	"fmt"
-	"crypto/rand"
 )
 
 var lock sync.Mutex
 
 // Save saves a representation of v to the file at path.
 func Save(path string, v interface{}) error {
-  lock.Lock()
-  defer lock.Unlock()
-  f, err := os.Create(path)
-  if err != nil {
-    return err
-  }
-  defer f.Close()
-  r, err := Marshal(v)
-  if err != nil {
-    return err
-  }
-  _, err = io.Copy(f, r)
-  return err
+	lock.Lock()
+	defer lock.Unlock()
+	f, err := os.Create(path)
+	if err != nil {
+		fmt.Printf("ERRSAVE: Error creating file", err)
+		return err
+	}
+	defer f.Close()
+	r, err := Marshal(v)
+	if err != nil {
+		fmt.Printf("Error marshalling interface: ", err)
+		return err
+	}
+	_, err = io.Copy(f, r)
+	if err != nil {
+		fmt.Printf("Error copying file data: ", err)
+		return err
+	}
+	return nil
 }
 
 // Load loads the file at path into v.
 // Use os.IsNotExist() to see if the returned error is due
 // to the file being missing.
 func Load(path string, v interface{}) error {
-  lock.Lock()
-  defer lock.Unlock()
-  f, err := os.Open(path)
-  if err != nil {
-    return err
-  }
-  defer f.Close()
-  return Unmarshal(f, v)
+	lock.Lock()
+	defer lock.Unlock()
+	f, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	return Unmarshal(f, v)
 }
 
 // Marshal is a function that marshals the object into an
 // io.Reader.
 // By default, it uses the JSON marshaller.
 var Marshal = func(v interface{}) (io.Reader, error) {
-  b, err := json.MarshalIndent(v, "", "\t")
-  if err != nil {
-    return nil, err
-  }
-  return bytes.NewReader(b), nil
+	b, err := json.MarshalIndent(v, "", "\t")
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewReader(b), nil
 }
 
 // Unmarshal is a function that unmarshals the data from the
 // reader into the specified value.
 // By default, it uses the JSON unmarshaller.
 var Unmarshal = func(r io.Reader, v interface{}) error {
-  return json.NewDecoder(r).Decode(v)
+	return json.NewDecoder(r).Decode(v)
 }
 
-// Creates a new UUID as a unique identifier for each item 
+// Creates a new UUID as a unique identifier for each item
 func newUUID() (string, error) {
 	uuid := make([]byte, 16)
 	n, err := io.ReadFull(rand.Reader, uuid)

@@ -23,7 +23,7 @@ GET `/` will return an overview of the database
 An example response would look like
 
 ```JSON
-  {"version":"0.0.1","buckets":["none"]}
+  {"version":"0.0.1","collections":["none"]}
 ```
 
 ## Querying 
