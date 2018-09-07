@@ -6,13 +6,16 @@ Pangolin is a database written in Go.
 We have hopes of making this distributed some day.
 
 ## Roadmap // To Do List
-- [ ] Create a data directory
-- [ ] Create individual collections within data directory
-- [ ] Create a collection
-- [ ] Get collections
-- [ ] Insert item into collection
+- [x] Create a data directory
+- [x] Create individual collections within data directory
+- [x] Create a collection
+- [ ] Get collections (Works, but there is an issue with marshaling / unmarshaling)
+- [ ] Insert item into collection (Works, but doesn't persist more than one item because of an issue with Get Collection)
 - [ ] Get item from collection
 - [ ] Delete collection
+- [ ] Attach a trie to each collection
+- [ ] Update trie on each action to the collection 
+- [ ] Add transactional commits 
 - [ ] Listen on port
 - [ ] Serve a simple GUI
 - [ ] CLI for running the database

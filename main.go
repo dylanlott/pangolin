@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	// InsertData()
+	InsertData()
 	LoadCollection()
 }
 
