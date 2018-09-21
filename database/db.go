@@ -69,7 +69,7 @@ func NewDocument(data interface{}) (Document, error) {
 
 // NewCollection creates a new Collection, creates the file, saves it,
 // and returns a Collection or an error
-func NewCollection(name string, trie trie.Trie) (*Collection, error) {
+func NewCollection(name string, trie trie.Trie) (Collection, error) {
 	coll := Collection{
 		Name: name,
 		Meta: nil,
@@ -80,7 +80,7 @@ func NewCollection(name string, trie trie.Trie) (*Collection, error) {
 	err := SaveCollection(name, coll)
 	if err != nil {
 		log.Printf("error saving collection", err)
-		return &Collection{
+		return Collection{
 			Name: name,
 			Meta: nil,
 			Data: nil,
@@ -90,9 +90,24 @@ func NewCollection(name string, trie trie.Trie) (*Collection, error) {
 
 	log.Printf("created new collection %+v\n", coll)
 
-	return &coll, nil
+	return coll, nil
 }
 
+// GetCollection loads a collection if it exists. If it does not
+// exist, it will create it and return that instead.
+func GetCollection(name string) (Collection, error) {
+	home, err := getPath()
+	_, err = os.Stat(filepath.Join(home, name))
+
+	if os.IsNotExist(err) {
+		t := trie.New()
+		coll, err := NewCollection(name, *t)
+		return coll, err
+	}
+	return LoadCollection(name), nil
+}
+
+// getPath returns the .pangolin path
 func getPath() (string, error) {
 	home, err := homedir.Dir()
 	if err != nil {
@@ -118,8 +133,9 @@ func SaveCollection(name string, coll Collection) error {
 // LoadCollection will read a file Collection into a Collection
 // struct and returns that Collection
 func LoadCollection(name string) Collection {
-	dir, err := homedir.Dir()
-	path := filepath.Join(dir, ".pangolin", name)
+	home, err := getPath()
+	checkError(err)
+	path := filepath.Join(home, name)
 	log.Printf("loading collection from path %s", path)
 	var coll *Collection = &Collection{}
 	err = Load(path, coll)
@@ -233,9 +249,12 @@ func createDirectory(path string) {
 	}
 }
 
+// createCollectionFile creates the file for the collection
+// and returns an error if it was unsuccessful.
 func (db *DB) createCollectionFile(collection string) error {
 	home, err := PangolinHomeDir()
 	if err != nil {
+		fmt.Printf("Error creating collection file: ", err)
 		return err
 	}
 	collectionPath := filepath.Join(home, collection)
@@ -243,6 +262,8 @@ func (db *DB) createCollectionFile(collection string) error {
 	return nil
 }
 
+// checkError is an error handler function that will exit the
+// process if there are errors.
 func checkError(err error) {
 	if err != nil {
 		fmt.Printf("ERROR", err.Error())

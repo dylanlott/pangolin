@@ -16,6 +16,7 @@ We have hopes of making this distributed some day.
 - [ ] Attach a trie to each collection
 - [ ] Update trie on each action to the collection 
 - [ ] Add transactional commits 
+- [ ] Add locks to collection and document structs
 - [ ] Listen on port
 - [ ] Serve a simple GUI
 - [ ] CLI for running the database

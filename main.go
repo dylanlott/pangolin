@@ -9,17 +9,15 @@ import (
 )
 
 func main() {
+	LoadCollection()
 	InsertData()
 	LoadCollection()
 }
 
 func InsertData() {
 	err := db.NewDatabase()
-	t := trie.New()
-	fmt.Printf("new trie %+v\n", t)
-
-	coll, err := db.NewCollection("name", *t)
-	fmt.Printf("Coll: %+v\n", coll)
+	coll, err := db.GetCollection("name")
+	fmt.Printf("Got Collection: %+v\n", coll)
 
 	if err != nil {
 		fmt.Printf("ERROR: %+v\n", err)
