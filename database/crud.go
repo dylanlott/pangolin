@@ -2,75 +2,61 @@ package db
 
 import (
 	"fmt"
-	"log"
+	// "encoding/json"
+
+	"github.com/elgs/jsonql"
 )
 
 func Insert(data interface{}, coll string) error {
-	// get snapshot of collection 
 	c := LoadCollection(coll)
-	log.Printf("got collection %+v\n", c)
-
-	// create document
 	var doc, err = NewDocument(data)
-
 	if err != nil {
 		return Error.New("Error creating new document", err)
 	}
-	log.Printf("saving document %+v\n", doc)
-	log.Printf("previous data: %+v\n", c.Data)
 	
-	// save document
-	c.Data = append(c.Data, doc)
-
-	log.Printf("added doc to collection %+v\n", c.Data)
-	// if no errors, complete transaction
+	c.Data[doc.ID] = doc.Data
 
 	err = SaveCollection(coll, c)
 	if err != nil {
-		fmt.Printf("error saving collection %+v\n", err)
 		return Error.New("error saving collection", err)
 	}
 	return nil
 }
 
-func Find() {
-
-	// Load collection
-
-	// Parse as json
-
-	// Parse query on json 
-
-	// get results 
-
-	// format as response and return
+func (c Collection) Find(q string) error {
+	parser := jsonql.NewQuery(c.Data)
+	data, err := parser.Query(q)
+	if err != nil {
+		fmt.Printf("error parsing query: %+v\n", err)
+		return err
+	}
+	fmt.Printf("FOUND DATA: %+v\n", data)
+	return nil
 }
 
-func FindOne() {
-
-	// Load collection
-
-	// Find single by query or id
-
-	// If multiple, return first object in list
-
-	// Create response for document and return it
+func typeof(v interface{}) string {
+	return fmt.Sprintf("%T", v)
 }
 
-func Delete() {
-	// Load Collection
+func (c Collection) FindById(id string) interface{} {
+	return c.Data[id]
+}
 
-	// keep collection as snapshot 
+func (c Collection) FindOne(q string) (interface{}, error) {
+	parser := jsonql.NewQuery(c.Data)
+	data, err := parser.Query(q)
+	if err != nil {
+		fmt.Printf("Error FindOne: %+v\n", err)
+		return nil, err
+	}
+	fmt.Printf("data retrieved %+v\n", data) 
+	return data, err 
+}
 
-	// Find Documents by query with parser 
-
-	// Remove documents from collection 
-
-	// Save collection 
-
-	// If error saving, revert back to snapshot of collection
-
-	// Return documents if no error
-
-	// Return error if transaction did not occur
+func (c Collection) Delete(key string) (interface{}, error) {
+	delete(c.Data, key)
+	if val, ok := c.Data[key]; ok {
+		return val, nil
+	}
+	return nil, Error.New("error deleting key %+v\n", key)
 }

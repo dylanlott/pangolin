@@ -38,7 +38,8 @@ type Response struct {
 // Collection is the struct that files are read into when opened
 type Collection struct {
 	Name string
-	Data []Document
+	// Data []Document
+	Data map[string]interface{}
 	Meta interface{}
 	Trie trie.Trie
 }
@@ -57,10 +58,6 @@ func NewDocument(data interface{}) (Document, error) {
 		return Document{}, nil
 	}
 
-	log.Printf("created new document %+v\n", Document{
-		Data: data,
-	})
-
 	return Document{
 		ID:   uuid,
 		Data: data,
@@ -73,19 +70,14 @@ func NewCollection(name string, trie trie.Trie) (Collection, error) {
 	coll := Collection{
 		Name: name,
 		Meta: nil,
-		Data: nil,
+		Data: make(map[string]interface{}),
 		Trie: trie,
 	}
 
 	err := SaveCollection(name, coll)
 	if err != nil {
 		log.Printf("error saving collection", err)
-		return Collection{
-			Name: name,
-			Meta: nil,
-			Data: nil,
-			Trie: trie,
-		}, err
+		return Collection{}, err
 	}
 
 	log.Printf("created new collection %+v\n", coll)
@@ -122,7 +114,6 @@ func getPath() (string, error) {
 func SaveCollection(name string, coll Collection) error {
 	home, err := getPath()
 	path := filepath.Join(home, name)
-	log.Printf("saving to collection %s at %s", name, path)
 	err = Save(path, coll)
 	if err != nil {
 		return Error.New("Error saving collection")

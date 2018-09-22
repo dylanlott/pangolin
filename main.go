@@ -1,21 +1,21 @@
 package main
 
 import (
-	"log"
 	"fmt"
 
-	"github.com/derekparker/trie"
 	"github.com/dylanlott/pangolin/database"
 )
 
 func main() {
-	LoadCollection()
-	InsertData()
-	LoadCollection()
+	err := db.NewDatabase()
+	if err != nil {
+		fmt.Printf("Error setting up database: %+v\n", err)
+	}
+
+	Get()
 }
 
 func InsertData() {
-	err := db.NewDatabase()
 	coll, err := db.GetCollection("name")
 	fmt.Printf("Got Collection: %+v\n", coll)
 
@@ -35,13 +35,10 @@ func InsertData() {
 	}
 }
 
-func LoadCollection() {
-	err := db.NewDatabase()
+func Get() {
+	coll, err := db.GetCollection("name")	
 	if err != nil {
-		log.Printf("Error creating database: %+v\n", err)
+		fmt.Printf("ERROR getting collection %+v\n", err)
 	}
-	t := trie.New()
-	fmt.Printf("trie %+v\n", t)
-	coll := db.LoadCollection("name")	
-	log.Printf("Collection: %+v\n", coll)
+	coll.Find("integer > 1")
 }
