@@ -2,8 +2,6 @@ package db
 
 import (
 	"fmt"
-	// "encoding/json"
-
 	"github.com/elgs/jsonql"
 )
 
@@ -22,20 +20,20 @@ func (c Collection) Put (data interface{}) (interface{}, error) {
 	return c.Data[doc.ID], nil
 }
 
-func Insert(data interface{}, coll string) error {
+func Insert(data interface{}, coll string) (interface{}, error) {
 	c := LoadCollection(coll)
 	var doc, err = NewDocument(data)
 	if err != nil {
-		return Error.New("Error creating new document", err)
+		return nil, Error.New("Error creating new document", err)
 	}
 	
 	c.Data[doc.ID] = doc.Data
 
 	err = SaveCollection(coll, c)
 	if err != nil {
-		return Error.New("error saving collection", err)
+		return nil, Error.New("error saving collection", err)
 	}
-	return nil
+	return doc, nil
 }
 
 func (c Collection) Find(q string) error {
@@ -71,10 +69,31 @@ func (c Collection) FindById(id string) (interface{}, bool) {
 	return nil, false
 }
 
+func Delete(key string, coll string) (interface{}, bool) {
+	c, err := GetCollection(coll)
+	checkError(err)
+
+	snapshot := c.Data[key]
+	delete(c.Data, key)
+	
+	_, ok := c.Data[key]
+	if ok {
+		err = SaveCollection(coll, c)
+		checkError(err)
+		return snapshot, true
+	}
+
+	return nil, false
+}
+
 func (c Collection) Delete(key string) (interface{}, error) {
 	delete(c.Data, key)
 	if val, ok := c.Data[key]; ok {
 		return val, nil
+	}
+	err := SaveCollection(c.Name, c)
+	if err != nil {
+		return nil, Error.New("Error saving collection after deletion: %+v\n", err)
 	}
 	return nil, Error.New("error deleting key %+v\n", key)
 }

@@ -7,12 +7,13 @@ import (
 )
 
 func main() {
-	err := db.NewDatabase()
-	if err != nil {
-		fmt.Printf("Error setting up database: %+v\n", err)
-	}
+	// err := db.NewDatabase()
+	// if err != nil {
+	// 	fmt.Printf("Error setting up database: %+v\n", err)
+	// }
 	Get()
 	findOne()
+	delete()
 }
 
 func InsertData() {
@@ -28,11 +29,16 @@ func InsertData() {
 	data["integer"] = 1234
 	data["float"] =  1234.56
 		
-	err = db.Insert(data, coll.Name)
+	d, err := db.Insert(data, coll.Name)
 
 	if err != nil {
 		fmt.Printf("Error inserting data %+v\n", err)
+	} else {
+		fmt.Printf("inserted data: %+v\n", d)
 	}
+
+	db.GetCollection("name")
+	fmt.Printf("coll.Data: %+v\n", coll.Data)
 }
 
 func Get() {
@@ -57,4 +63,9 @@ func findOne() error {
 		fmt.Printf("FOUND DATA: %+v\n", data)
 	}
 	return nil
+}
+
+func delete() {
+	val, err := db.Delete("fa1c427f-2839-4bbc-b720-1aa56fa274c8", "name")
+	fmt.Printf("Deleted: %+v\n - ok: %+v\n", val, err)
 }
