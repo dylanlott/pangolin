@@ -11,8 +11,8 @@ func main() {
 	if err != nil {
 		fmt.Printf("Error setting up database: %+v\n", err)
 	}
-
 	Get()
+	findOne()
 }
 
 func InsertData() {
@@ -41,4 +41,20 @@ func Get() {
 		fmt.Printf("ERROR getting collection %+v\n", err)
 	}
 	coll.Find("integer > 1")
+}
+
+func findOne() error {
+	coll, err := db.GetCollection("name")
+	if err != nil {
+		fmt.Printf("ERROR getting collection %+v\n", err)
+		return err
+	}
+	data, ok := coll.FindById("bb363bfd-0779-4e25-9189-460dc745a8b6")
+	if ok != true {
+		fmt.Printf("NOT OK: %+v\n", ok)
+	}
+	if data != nil {
+		fmt.Printf("FOUND DATA: %+v\n", data)
+	}
+	return nil
 }
