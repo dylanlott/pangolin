@@ -2,12 +2,13 @@ package db
 
 import (
 	"fmt"
+
 	"github.com/elgs/jsonql"
 )
 
 // Put is a Collection method that allows you to insert an item
 // into a collection
-func (c Collection) Put (data interface{}) (interface{}, error) {
+func (c Collection) Put(data interface{}) (interface{}, error) {
 	doc, err := NewDocument(data)
 	if err != nil {
 		return nil, err
@@ -20,13 +21,15 @@ func (c Collection) Put (data interface{}) (interface{}, error) {
 	return c.Data[doc.ID], nil
 }
 
+// Insert takes a data interface and a collection and inserts it
+// into that collection, returning the inserted data and an error
 func Insert(data interface{}, coll string) (interface{}, error) {
 	c := LoadCollection(coll)
 	var doc, err = NewDocument(data)
 	if err != nil {
-		return nil, Error.New("Error creating new document", err)
+		return nil, Error.New("error creating new document", err)
 	}
-	
+
 	c.Data[doc.ID] = doc.Data
 
 	err = SaveCollection(coll, c)
@@ -36,6 +39,7 @@ func Insert(data interface{}, coll string) (interface{}, error) {
 	return doc, nil
 }
 
+// Find is for querying the JSON of collections
 func (c Collection) Find(q string) error {
 	parser := jsonql.NewQuery(c.Data)
 	data, err := parser.Query(q)
@@ -51,6 +55,7 @@ func typeof(v interface{}) string {
 	return fmt.Sprintf("%T", v)
 }
 
+// FindOne finds exactly one collection.
 func (c Collection) FindOne(q string) (interface{}, error) {
 	parser := jsonql.NewQuery(c.Data)
 	data, err := parser.Query(q)
@@ -58,24 +63,18 @@ func (c Collection) FindOne(q string) (interface{}, error) {
 		fmt.Printf("Error FindOne: %+v\n", err)
 		return nil, err
 	}
-	fmt.Printf("data retrieved %+v\n", data) 
-	return data, err 
+	fmt.Printf("data retrieved %+v\n", data)
+	return data, err
 }
 
-func (c Collection) FindById(id string) (interface{}, bool) {
-	if val, ok := c.Data[id]; ok {
-		return val, true
-	}
-	return nil, false
-}
-
+// Delete takes a key and deletes the document located at that key
 func Delete(key string, coll string) (interface{}, bool) {
 	c, err := GetCollection(coll)
 	checkError(err)
 
 	snapshot := c.Data[key]
 	delete(c.Data, key)
-	
+
 	_, ok := c.Data[key]
 	if ok {
 		err = SaveCollection(coll, c)
@@ -86,6 +85,8 @@ func Delete(key string, coll string) (interface{}, bool) {
 	return nil, false
 }
 
+// Delete is a collection method that deletes the document at argument
+// `key` and returns an interface and error
 func (c Collection) Delete(key string) (interface{}, error) {
 	delete(c.Data, key)
 	if val, ok := c.Data[key]; ok {
