@@ -128,7 +128,7 @@ func LoadCollection(name string) Collection {
 	checkError(err)
 	path := filepath.Join(home, name)
 	log.Printf("loading collection from path %s", path)
-	var coll *Collection = &Collection{}
+	coll := &Collection{}
 	err = Load(path, coll)
 	if err != nil {
 		log.Fatal("Error loading collection: ", err)
@@ -136,9 +136,9 @@ func LoadCollection(name string) Collection {
 	return *coll
 }
 
-// NewDatabase will create a new database and setup the config file 
+// SetupDatabase will create a new database and setup the config file
 // if it does not exist
-func NewDatabase() error {
+func SetupDatabase() error {
 	home, err := PangolinHomeDir()
 	checkError(err)
 	createDirectory(filepath.Join(home))
@@ -233,7 +233,7 @@ func createFile(path string) {
 func createDirectory(path string) {
 	var _, err = os.Stat(path)
 	if os.IsNotExist(err) {
-		var  err = os.MkdirAll(path, 0755)
+		var err = os.MkdirAll(path, 0755)
 		if err != nil {
 			fmt.Printf("can't create directory %s", err)
 		}

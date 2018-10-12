@@ -3,69 +3,12 @@ package main
 import (
 	"fmt"
 
-	"github.com/dylanlott/pangolin/database"
+	"github.com/dylanlott/pangolin/pkg/database"
 )
 
 func main() {
-	// err := db.NewDatabase()
-	// if err != nil {
-	// 	fmt.Printf("Error setting up database: %+v\n", err)
-	// }
-	Get()
-	findOne()
-	delete()
-}
-
-func InsertData() {
-	coll, err := db.GetCollection("name")
-	fmt.Printf("Got Collection: %+v\n", coll)
-
+	err := db.SetupDatabase()
 	if err != nil {
-		fmt.Printf("ERROR: %+v\n", err)
+		fmt.Printf("Error setting up database: %+v\n", err)
 	}
-
-	data := make(map[string]interface{})
-	data["hello"] = "world"
-	data["integer"] = 1234
-	data["float"] =  1234.56
-		
-	d, err := db.Insert(data, coll.Name)
-
-	if err != nil {
-		fmt.Printf("Error inserting data %+v\n", err)
-	} else {
-		fmt.Printf("inserted data: %+v\n", d)
-	}
-
-	db.GetCollection("name")
-	fmt.Printf("coll.Data: %+v\n", coll.Data)
-}
-
-func Get() {
-	coll, err := db.GetCollection("name")	
-	if err != nil {
-		fmt.Printf("ERROR getting collection %+v\n", err)
-	}
-	coll.Find("integer > 1")
-}
-
-func findOne() error {
-	coll, err := db.GetCollection("name")
-	if err != nil {
-		fmt.Printf("ERROR getting collection %+v\n", err)
-		return err
-	}
-	data, ok := coll.FindById("bb363bfd-0779-4e25-9189-460dc745a8b6")
-	if ok != true {
-		fmt.Printf("NOT OK: %+v\n", ok)
-	}
-	if data != nil {
-		fmt.Printf("FOUND DATA: %+v\n", data)
-	}
-	return nil
-}
-
-func delete() {
-	val, err := db.Delete("fa1c427f-2839-4bbc-b720-1aa56fa274c8", "name")
-	fmt.Printf("Deleted: %+v\n - ok: %+v\n", val, err)
 }
