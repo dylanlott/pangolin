@@ -7,5 +7,8 @@ require (
 	github.com/elgs/jsonql v0.0.0-20180604153638-610eaa48db88
 	github.com/mitchellh/go-homedir v1.0.0
 	github.com/petar/GoLLRB v0.0.0-20130427215148-53be0d36a84c
+	github.com/spf13/cobra v0.0.3 // indirect
+	github.com/spf13/pflag v1.0.3 // indirect
+	github.com/spf13/viper v1.2.1 // indirect
 	github.com/zeebo/errs v1.0.0
 )
