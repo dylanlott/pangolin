@@ -38,7 +38,6 @@ type Response struct {
 // Collection is the struct that files are read into when opened
 type Collection struct {
 	Name string
-	// Data []Document
 	Data map[string]interface{}
 	Meta interface{}
 	Trie trie.Trie

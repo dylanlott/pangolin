@@ -1,9 +1,11 @@
 package db
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"github.com/elgs/jsonql"
+	"github.com/thedevsaddam/gojsonq"
 )
 
 // Put is a Collection method that allows you to insert an item
@@ -37,6 +39,22 @@ func Insert(data interface{}, coll string) (interface{}, error) {
 		return nil, Error.New("error saving collection", err)
 	}
 	return doc, nil
+}
+
+// NewQuery creates a new Query object for chain use elsewhere
+func (c Collection) NewQuery() *gojsonq.JSONQ {
+	data, err := json.Marshal(c.Data)
+	if err != nil {
+		fmt.Printf("error marshaling JSON %+v\n", err)
+		return nil
+	}
+	return gojsonq.New().JSONString(string(data))
+}
+
+// Where returns a Where query set that matches key, op, val parameters
+func (c Collection) Where(key, op, val string) interface{} {
+	q := c.NewQuery().Where(key, op, val).Get()
+	return q
 }
 
 // Find is for querying the JSON of collections
