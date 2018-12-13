@@ -1,0 +1,63 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/any.proto";
+
+service PangolinDB {
+  rpc Put(PutRequest) returns (PutResponse);
+  rpc Insert(InsertRequest) returns (InsertResponse);
+  rpc FindOne(FindOneRequest) returns (FindOneResponse);
+  rpc Find(FindRequest) returns (FindResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
+}
+
+message PutRequest {
+  string api_key = 1;
+  google.protobuf.Any data = 2;
+  string collection_name = 3;
+}
+
+message PutResponse {
+  google.protobuf.Any data = 1;
+}
+
+message InsertRequest {
+  string api_key = 1;
+  google.protobuf.Any data = 2;
+  string collection_name = 3;
+}
+
+message InsertResponse {
+  google.protobuf.Any data = 1;
+}
+
+message FindOneRequest {
+  string api_key = 1;
+  string query = 2;
+  string collection_name = 3;
+}
+
+message FindOneResponse {
+  google.protobuf.Any data = 1;
+}
+
+message FindRequest {
+  string api_key = 1;
+  string query = 2;
+  string collection_name = 3;
+}
+
+message FindResponse {
+  google.protobuf.Any data = 1;
+}
+
+message DeleteRequest {
+  string api_key = 1;
+  string key = 2;
+  string collection_name = 3;
+}
+
+message DeleteResponse {
+  google.protobuf.Any data = 1;
+}

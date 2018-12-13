@@ -47,7 +47,7 @@ type Collection struct {
 // DB is the struct that the entire database uses
 type DB struct {
 	trie        trie.Trie
-	collections []*Collection
+	Collections map[string]*Collection
 }
 
 // NewDocument creates a new document with a valid, unique UUID and
@@ -138,12 +138,16 @@ func LoadCollection(name string) Collection {
 
 // SetupDatabase will create a new database and setup the config file
 // if it does not exist
-func SetupDatabase() error {
+func SetupDatabase() (*DB, error) {
 	home, err := PangolinHomeDir()
 	checkError(err)
 	createDirectory(filepath.Join(home))
 	createFile(filepath.Join(home, ".config"))
-	return nil
+
+	database := &DB{
+		Collections: make(map[string]*Collection),
+	}
+	return database, nil
 }
 
 // Get returns object with id of `id`
