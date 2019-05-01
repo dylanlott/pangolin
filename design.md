@@ -98,3 +98,29 @@ Example Field Struct:  // this probably needs improvement
     }
 }
 ```
+
+# Transactions
+Transactions are naturally fairly closely related to collection-level events, but should be their own separate package for separation of concerns. 
+
+```
+type Transaction struct {
+    Errors []error
+    
+    Updates []Update{}
+}
+
+type Update struct {
+    Collection  string
+    Data    []interface{}
+}
+```
+
+Transactions should be opened, work should be done, and then the TX should be committed or rolled back. 
+
+```
+if len(Errors) == 0 {
+    tx.commit()
+}
+
+return tx.Errors
+```
