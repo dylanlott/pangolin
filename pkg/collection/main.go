@@ -1,9 +1,12 @@
 package collection
 
 import (
-	"github.com/timtadh/data-structures/hashtable"
+	"fmt"
+	"sync"
 
-	"pkg/kvstore/badger"
+	"github.com/ancientlore/go-avltree"
+	"github.com/dylanlott/pangolin/pkg/kvstore"
+	"github.com/timtadh/data-structures/hashtable"
 )
 
 // Collection holds all of the collection information
@@ -15,7 +18,7 @@ type Collection struct {
 	Indexes    map[string]avltree.PairTree
 	HashTables map[string]hashtable.Hash
 
-	Driver badgerkvstore.BadgerKVStore
+	Driver kvstore.BadgerKVStore
 
 	sync.Mutex
 }
@@ -23,7 +26,6 @@ type Collection struct {
 // NewCollection creates a new collection and instantiates its indices
 func NewCollection(name string) (*Collection, error) {
 	// TODO: Check that collection exists
-
 	path := getCollectionPath(name)
 
 	fmt.Printf("Getting Collection at %s", path)
@@ -46,6 +48,8 @@ func GetCollection(name string) (*Collection, error) {
 
 	kv := badger.NewBadgerKVStore(path)
 
+	// TODO: Load indexes and hashtables onto Collection
+
 	return &Collection{
 		Name:   name,
 		Driver: kv,
@@ -57,6 +61,6 @@ func getCollectionPath(name string) string {
 	return fmt.Sprintf("/tmp/pangolin/", name)
 }
 
-func checkCollection(name string) bool {
+func collExists(name string) bool {
 	panic("not impl")
 }

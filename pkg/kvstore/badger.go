@@ -1,4 +1,4 @@
-package badgerkvstore
+package kvstore
 
 import (
 	"log"

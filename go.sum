@@ -1,0 +1,4 @@
+github.com/ancientlore/go-avltree v1.0.1 h1:4XsGK6rkg1rjCTZoQbc09It5tmgMGCcFSYCVRwV99KU=
+github.com/ancientlore/go-avltree v1.0.1/go.mod h1:nfJ32Li6TWi3iVi9M3XF19FNqdfTlmoI87CPVgtgqoc=
+github.com/timtadh/data-structures v0.5.3 h1:F2tEjoG9qWIyUjbvXVgJqEOGJPMIiYn7U5W5mE+i/vQ=
+github.com/timtadh/data-structures v0.5.3/go.mod h1:9R4XODhJ8JdWFEI8P/HJKqxuJctfBQw6fDibMQny2oU=
