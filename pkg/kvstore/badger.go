@@ -12,8 +12,8 @@ type BadgerKVStore struct {
 	Path string
 }
 
-// NewBadgerKVStore returns a struct for interacting with Badger
-func NewBadgerKVStore(path string) (*badger.DB, error) {
+// Open returns a struct for interacting with Badger
+func Open(path string) (*badger.DB, error) {
 	opts := badger.DefaultOptions
 	opts.Dir = path
 	opts.ValueDir = path

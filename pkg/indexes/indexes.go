@@ -27,6 +27,11 @@ func NewIndex() *Index {
 
 // LoadIndex loads the index and returns a pointer to it or an error
 func LoadIndex(collection string, field string) (*Index, error) {
+	// load file
+
+	// parse to index
+
+	// return index or error
 }
 
 // Get atomically reads an item from an Index
