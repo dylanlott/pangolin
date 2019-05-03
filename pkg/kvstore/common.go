@@ -8,11 +8,11 @@ import (
 
 // KVStore is the interface for all KV Stores we accept. It's purposefully broad to push type
 // handling and logic into the driver for each KV Store that fulfills this interface.
-type KVStore interface {
-	Get(key pangolin.Key) (pangolin.Pair, bool, error)
-	Put(key pangolin.Key, val pangolin.Value) error
-	Delete(key pangolin.Key) error
-}
+// type KVStore interface {
+// 	Get(key pangolin.Key) (pangolin.Pair, bool, error)
+// 	Put(key pangolin.Key, val pangolin.Value) error
+// 	Delete(key pangolin.Key) error
+// }
 
 var (
 	// Error is the main error class for this package
