@@ -37,11 +37,15 @@ First, let's outline our index interface.
 
 ```
 type Index interface {
-    Get(key string) (interface{}, error)
-    Put(key string, value interface{}) error
+    GetIndex(coll *Collection) (*Index, error)
+    Get(index *Index, key string) (interface{}, error)
+    Put(index *Index, key string, value interface{}) error
     Remove(key string) error
 }
 ```
+
+* Each document will have an `id` index by default, but nothing else.
+* Each collection will have a slice of indexes on it
 
 # Collections
 
