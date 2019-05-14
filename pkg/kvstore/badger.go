@@ -36,7 +36,14 @@ func (k *KVStore) Get(key string) error {
 	panic("not implemented")
 }
 
+// BulkGet takes as many keys as you pass it and returns their associated values.
+// This acquires a lock before obtaining the keys.
+func (k *KVStore) BulkGet(key ...string) ([][]byte, error) {
+	panic("not implemented")
+}
+
 // Put puts a key value pair to disk
+// This obtains a lock before putting values to disk.
 func (k *KVStore) Put(key string, value interface{}) error {
 	valBytes, err := getBytes(value)
 	if err != nil {

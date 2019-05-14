@@ -1,6 +1,9 @@
-package main
+package config
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
@@ -15,7 +18,15 @@ func Create(path string) {
 }
 
 // Load loads configs into the system
-func Load() {
-	viper.AddConfigPath(fmt.Sprintf("%s/%s", homedir.Dir(), ".pangolin"))
-	err := viper.ReadInConfig()
+func Load() error {
+	home, err := homedir.Dir()
+	if err != nil {
+		return err
+	}
+	viper.AddConfigPath(fmt.Sprintf("%s/%s", home, ".pangolin"))
+	err = viper.ReadInConfig()
+	if err != nil {
+		return err
+	}
+	return nil
 }

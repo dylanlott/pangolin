@@ -5,10 +5,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/ancientlore/go-avltree"
 	"github.com/dylanlott/pangolin/pkg/kvstore"
 	homedir "github.com/mitchellh/go-homedir"
-	"github.com/timtadh/data-structures/hashtable"
 	"github.com/zeebo/errs"
 )
 
@@ -17,11 +15,14 @@ import (
 type Collection struct {
 	Name string
 
-	// Map of field names in this collection to AVL trees
-	Indexes    map[string]avltree.PairTree
-	HashTables map[string]hashtable.Hash
+	// Location of collection files
+	Path string
 
-	Driver kvstore.BadgerKVStore
+	// Map of field names in this collection to AVL trees
+	// Indexes    []indexes.Index
+	// HashTables map[string]hashtable.Hash
+
+	Driver *kvstore.KVStore
 
 	sync.Mutex
 }
@@ -29,51 +30,74 @@ type Collection struct {
 // NewCollection creates a new collection and instantiates its indices
 func NewCollection(name string) (*Collection, error) {
 	// TODO: Check that collection exists
-	path := getCollectionPath(name)
-	kv := kvstore.NewBadgerKVStore(path)
+	path, err := getCollectionPath(name)
+	if err != nil {
+		return nil, err
+	}
+	kv, err := kvstore.Open(path)
+	if err != nil {
+		return nil, err
+	}
 
 	// TODO: Create index files and load them on here.
 	coll := &Collection{
 		Name:   name,
 		Driver: kv,
+		Path:   path,
 	}
 
-	return coll
+	return coll, nil
 }
 
 // GetCollection returns a collection pointer or an error
 func GetCollection(name string) (*Collection, error) {
-	path := getCollectionPath(name)
+	path, err := getCollectionPath(name)
+	if err != nil {
+		return nil, err
+	}
 
-	kv := kvstore.NewBadgerKVStore(path)
-
-	// TODO: Load indexes and hashtables onto Collection
+	kv, err := kvstore.Open(path)
+	if err != nil {
+		return nil, err
+	}
 
 	return &Collection{
 		Name:   name,
 		Driver: kv,
-	}
+		Path:   path,
+	}, nil
 }
 
 // RemoveCollection will delete all data pertaining to a collection.
 // This is not un-doable. Don't expose this to end users without confirmation.
 func RemoveCollection(name string) error {
-	path := getCollectionPath(name)
+	_, err := getCollectionPath(name)
+	if err != nil {
+		return err
+	}
 	return errs.New("not implemented yet")
 }
 
 // Returns the path of the
 // TODO: Make this take env configs rather than be hard coded
-func getCollectionPath(name string) string {
-	path := fmt.Sprintf("%s/%s/%s", homedir.Dir(), "pangolindb", name)
+func getCollectionPath(name string) (string, error) {
+	// TODO: This should come from a Config that's passed through
+	// this service on startup.
+	homePath, err := homedir.Dir()
+	if err != nil {
+		return "", err
+	}
+	path := fmt.Sprintf("%s/%s/%s", homePath, "pangolindb", name)
 	fmt.Printf("PATH: %s", path)
-	return path
+	return path, nil
 }
 
 // pathExists checks if a given path exists.
 func pathExists(name string) bool {
-	path := getCollectionPath(name)
-	fmt.Printf("Checking path: %s", path)
+	path, err := getCollectionPath(name)
+	if err != nil {
+		fmt.Printf("error getting path in pathExists: %s", err.Error())
+	}
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return false
 	}

@@ -1,50 +1,83 @@
 package indexes
 
 import (
+	"sync"
+
+	"github.com/dylanlott/pangolin/pkg/collection"
+	"github.com/dylanlott/pangolin/pkg/persist"
 	"github.com/timtadh/data-structures/hashtable"
 )
 
-// Client is the main interface that packages need to support
-// to index documents
-type Client interface {
-	Get(key Key) (Pair, error)
-	Put(key Key, value Value) error
-	Remove(key string) error
-	Size(key string) (int64, error)
-	Load(name string) (*Index, error)
-}
-
-// Index tracks a specific index on a field of a collection.
+// Index holds the information for editing and updating indexes
+// on a collection.
+// Indexes have a RWMutex for safe manipulation.
 type Index struct {
-	collection *Collection
-	field      string
+	Collection *collection.Collection
+	Field      string
+	Hashtable  *hashtable.Hash
+
+	sync.RWMutex
 }
 
-// NewIndex creates a new index and returns a pointer or an error to that index
-func NewIndex() *Index {
-	return hashtable.NewHashTable(16)
+// New creates an index on a given field and returns a pointer
+// to that index.
+func New(field string, col *collection.Collection) (*Index, error) {
+	ht := hashtable.NewHashTable(16)
+	index := avl.NewObjectTree()
+
+	return &Index{
+		Collection: col,
+		Field:      field,
+		Hashtable:  ht,
+	}, nil
 }
 
-// LoadIndex loads the index and returns a pointer to it or an error
-func LoadIndex(collection string, field string) (*Index, error) {
-	// load file
+// Open returns a pointer to an Index struct for methods on indexes
+func Open(field string, col *collection.Collection) (*Index, error) {
+	var h hashtable.Hash
+	var t avl.ObjectTree
 
-	// parse to index
+	if persist.Exists(col.Path) {
+		// it exists, load the existing one
+		err := persist.Load(col.Path, h)
+		if err != nil {
+			return &Index{}, err
+		}
+	} else {
+		// it doesn't exist, create a new one
+		i, err := New(field, col)
+		if err != nil {
+			return nil, err
+		}
+		return i, nil
+	}
 
-	// return index or error
+	return &Index{
+		Collection: col,
+		Field:      field,
+		Hashtable:  &h,
+	}, nil
 }
 
-// Get atomically reads an item from an Index
-func (i *Index) Get() {
+// Put inserts a value into the *Index
+func (i *Index) Put(key string, value interface{}) (interface{}, error) {
+	k := hashtable.Hashable(key)
+	err := i.Hashtable.Put(k, value)
+	if err != nil {
+		return nil, err
+	}
 
+	i.Tree.Put()
+
+	return value, nil
 }
 
-// Put atomically inserts or updates a key/value pair.
-func (i *Index) Put() {
-
+// Get returns a value from a *Index
+func (i *Index) Get(key string) (interface{}, error) {
+	return i.Hashtable.Get(key)
 }
 
-// Delete atomically removes an item from an index
-func (i *Index) Delete() {
-
+// Delete removes a value from the Index
+func (i *Index) Delete(key string) error {
+	return i.Hashtable.Remove(key)
 }

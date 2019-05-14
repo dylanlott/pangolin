@@ -1,6 +1,12 @@
-package main
+package transaction
 
-import "fmt"
+// Tx holds the main Transaction struct
+// that operations are performed on.
+type Tx struct {
+	Errors []error
+	// TODO: Hook this up to queries
+	// Query  []query.Query
+}
 
 // NewTransaction creates a new Tx and returns it. This also creates a
 // snapshot of the collection at creation time and acquires a lock on the Collection.
