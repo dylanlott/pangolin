@@ -3,19 +3,17 @@ package indexes
 import (
 	"fmt"
 	"sync"
-
-	"github.com/dylanlott/pangolin/pkg/pangolin"
 )
 
 // Key the key of the dictionary
-type Key pangolin.Key
+type Key generic.Key
 
 // Value the content of the dictionary
-type Value pangolin.Value
+type Value generic.Value
 
 // ValueHashtable the set of Items
 type ValueHashtable struct {
-	items map[string]Value
+	items map[int]Value
 	lock  sync.RWMutex
 }
 

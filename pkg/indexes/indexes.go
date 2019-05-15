@@ -5,7 +5,6 @@ import (
 
 	"github.com/dylanlott/pangolin/pkg/collection"
 	"github.com/dylanlott/pangolin/pkg/persist"
-	"github.com/timtadh/data-structures/hashtable"
 )
 
 // Index holds the information for editing and updating indexes
@@ -14,7 +13,7 @@ import (
 type Index struct {
 	Collection *collection.Collection
 	Field      string
-	Hashtable  *hashtable.Hash
+	Hashtable  ValueHashtable
 
 	sync.RWMutex
 }
@@ -22,8 +21,7 @@ type Index struct {
 // New creates an index on a given field and returns a pointer
 // to that index.
 func New(field string, col *collection.Collection) (*Index, error) {
-	ht := hashtable.NewHashTable(16)
-	index := avl.NewObjectTree()
+	ht := ValueHashtable{}
 
 	return &Index{
 		Collection: col,
@@ -34,12 +32,11 @@ func New(field string, col *collection.Collection) (*Index, error) {
 
 // Open returns a pointer to an Index struct for methods on indexes
 func Open(field string, col *collection.Collection) (*Index, error) {
-	var h hashtable.Hash
-	var t avl.ObjectTree
+	var vh ValueHashtable
 
 	if persist.Exists(col.Path) {
 		// it exists, load the existing one
-		err := persist.Load(col.Path, h)
+		err := persist.Load(col.Path, vh)
 		if err != nil {
 			return &Index{}, err
 		}
@@ -55,19 +52,16 @@ func Open(field string, col *collection.Collection) (*Index, error) {
 	return &Index{
 		Collection: col,
 		Field:      field,
-		Hashtable:  &h,
+		Hashtable:  vh,
 	}, nil
 }
 
 // Put inserts a value into the *Index
 func (i *Index) Put(key string, value interface{}) (interface{}, error) {
-	k := hashtable.Hashable(key)
-	err := i.Hashtable.Put(k, value)
+	err := i.Hashtable.Put(key, value)
 	if err != nil {
 		return nil, err
 	}
-
-	i.Tree.Put()
 
 	return value, nil
 }
