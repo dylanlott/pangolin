@@ -13,6 +13,7 @@ require (
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/timtadh/data-structures v0.5.3
+	github.com/timtadh/fs2 v0.1.0 // indirect
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
 	github.com/zeebo/errs v1.1.1
 	golang.org/x/net v0.0.0-20190501004415-9ce7a6920f09 // indirect
