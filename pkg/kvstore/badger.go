@@ -32,8 +32,23 @@ func Open(path string) (*KVStore, error) {
 }
 
 // Get returns the value of a given Key.
-func (k *KVStore) Get(key string) error {
-	panic("not implemented")
+func (k *KVStore) Get(key string) ([]byte, error) {
+	var valCopy []byte
+	err := k.DB.View(func(txn *badger.Txn) error {
+		item, err := txn.Get([]byte(key))
+		if err != nil {
+			return err
+		}
+
+		// copy value, don't assign it
+		valCopy, err = item.ValueCopy(nil)
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return valCopy, nil
 }
 
 // BulkGet takes as many keys as you pass it and returns their associated values.

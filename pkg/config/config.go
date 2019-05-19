@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/mitchellh/go-homedir"
+	homedir "github.com/mitchellh/go-homedir"
 	"github.com/spf13/viper"
 )
 
@@ -12,7 +12,7 @@ import (
 func Create(path string) {
 	if err := viper.SafeWriteConfigAs(path); err != nil {
 		if os.IsNotExist(err) {
-			err = viper.WriteConfigAs(path)
+			_ = viper.WriteConfigAs(path)
 		}
 	}
 }
@@ -29,4 +29,10 @@ func Load() error {
 		return err
 	}
 	return nil
+}
+
+// Write should safely write a config file to the host system that is set to
+// Pangolin defaults.
+func Write() error {
+	panic("not impl")
 }
