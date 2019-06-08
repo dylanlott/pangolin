@@ -51,31 +51,39 @@ func NewCollection(name string) (*Collection, error) {
 
 // GetCollection returns a collection pointer or an error
 func GetCollection(name string) (*Collection, error) {
-	path, err := getCollectionPath(name)
-	if err != nil {
-		return nil, err
+	if pathExists(name) {
+		path, err := getCollectionPath(name)
+		if err != nil {
+			return nil, err
+		}
+
+		kv, err := kvstore.Open(path)
+		if err != nil {
+			return nil, err
+		}
+
+		return &Collection{
+			Name:   name,
+			Driver: kv,
+			Path:   path,
+		}, nil
 	}
 
-	kv, err := kvstore.Open(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Collection{
-		Name:   name,
-		Driver: kv,
-		Path:   path,
-	}, nil
+	return NewCollection(name)
 }
 
 // RemoveCollection will delete all data pertaining to a collection.
 // This is not un-doable. Don't expose this to end users without confirmation.
 func RemoveCollection(name string) error {
-	_, err := getCollectionPath(name)
-	if err != nil {
-		return err
+	if pathExists(name) {
+		_, err := getCollectionPath(name)
+		if err != nil {
+			return err
+		}
+
+		// TODO: Call remove collection function here.
 	}
-	return errs.New("not implemented yet")
+	return errs.New("not impl yet")
 }
 
 // Returns the path of the
