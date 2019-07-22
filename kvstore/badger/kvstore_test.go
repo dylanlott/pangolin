@@ -17,4 +17,14 @@ func TestKVStore(t *testing.T) {
 	kv, err := NewBadgerAdapter(testDir)
 	assert.NoError(t, err)
 	assert.NotNil(t, kv)
+	assert.NotNil(t, kv.db)
+
+	t.Run("test put", func(t *testing.T) {
+		key := []byte("testkey")
+		value := []byte("test value")
+
+		err := kv.Put(key, value)
+		t.Log(err)
+		assert.NoError(t, err)
+	})
 }

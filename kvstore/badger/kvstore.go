@@ -1,5 +1,11 @@
 package kvstore
 
+// Key is a string for keys
+type Key []byte
+
+// Value is a marshalled byte slice of the Value
+type Value []byte
+
 // Keyed outlines what a Key has to be able to return
 type Keyed interface {
 	Bytes() []byte
@@ -32,4 +38,25 @@ type Database interface {
 	KVStore() *KeyValueStore
 	Indexes() []string
 	Query(query string) interface{}
+}
+
+// Pair fulfills the Paired interface.
+type Pair struct {
+	Key   Keyed
+	Value Valued
+}
+
+// NewPair returns a Pair that fulfills Paired, Keyed, and Valued
+func NewPair(key []byte, value []byte) Pair {
+	return Pair{}
+}
+
+// Put acts on a Pair struct and inserts them into the KVStore
+func (p Pair) Put() error {
+	return nil
+}
+
+// Get acts on a Pair and returns the value of the Key in that Pair
+func (p Pair) Get() (Valued, error) {
+	return nil, nil
 }
