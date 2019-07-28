@@ -12,6 +12,8 @@ type BadgerAdapter struct {
 	db *badger.DB
 }
 
+var _ KeyValueStore = (*BadgerAdapter)(nil)
+
 // NewBadgerAdapter Returns a new BadgerAdapter
 func NewBadgerAdapter(path string) (*BadgerAdapter, error) {
 	opts := badger.DefaultOptions

@@ -26,5 +26,9 @@ func TestKVStore(t *testing.T) {
 		err := kv.Put(key, value)
 		t.Log(err)
 		assert.NoError(t, err)
+
+		val, err := kv.Get(key)
+		assert.NoError(t, err)
+		assert.NotNil(t, val)
 	})
 }

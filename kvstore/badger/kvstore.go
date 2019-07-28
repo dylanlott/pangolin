@@ -6,6 +6,16 @@ type Key []byte
 // Value is a marshalled byte slice of the Value
 type Value []byte
 
+// Unmarshal returns the unmarshaled value of a Value
+func (v Value) Unmarshal() {
+
+}
+
+// Unmarshal returns the unmarshaled value of a Key
+func (k Key) Unmarshal() {
+
+}
+
 // Keyed outlines what a Key has to be able to return
 type Keyed interface {
 	Bytes() []byte
@@ -27,8 +37,8 @@ type Valued interface {
 // KeyValueStore is the main interface that any driver
 // must fulfill to be a driver for the DB.
 type KeyValueStore interface {
-	Get(key Keyed) error
-	Put(key Keyed, value Valued) error
+	Get(key Key) (Value, error)
+	Put(key Key, value Value) error
 	Delete(key Keyed) error
 }
 
