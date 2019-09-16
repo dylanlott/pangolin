@@ -19,7 +19,8 @@ func TestKVStore(t *testing.T) {
 	assert.NotNil(t, kv)
 	assert.NotNil(t, kv.db)
 
-	t.Run("test put", func(t *testing.T) {
+	t.Run("test kvstore", func(t *testing.T) {
+		// happy path
 		key := []byte("testkey")
 		value := []byte("test value")
 
@@ -30,5 +31,18 @@ func TestKVStore(t *testing.T) {
 		val, err := kv.Get(key)
 		assert.NoError(t, err)
 		assert.NotNil(t, val)
+
+		// getting non existent key should not error, only return nil
+		val, err = kv.Get([]byte("nonexistent"))
+		assert.NoError(t, err)
+		assert.Nil(t, val)
+
+		// test that nil keys throw errors
+		err = kv.Put([]byte(""), []byte("test empty value"))
+		assert.Error(t, err)
+
+		// test that nil values throw errors
+		err = kv.Put([]byte("testkey"), nil)
+		assert.Error(t, err)
 	})
 }

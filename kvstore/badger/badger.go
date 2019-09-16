@@ -14,6 +14,11 @@ type BadgerAdapter struct {
 
 var _ KeyValueStore = (*BadgerAdapter)(nil)
 
+const (
+	// ErrInvalidKey is returned if an empty key or invalid key is provided.
+	ErrInvalidKey = errs.Class("invalid key")
+)
+
 // NewBadgerAdapter Returns a new BadgerAdapter
 func NewBadgerAdapter(path string) (*BadgerAdapter, error) {
 	opts := badger.DefaultOptions
@@ -46,12 +51,21 @@ func (b *BadgerAdapter) Get(key Key) (Value, error) {
 		value = valCopy
 		return nil
 	})
+
 	return value, err
 }
 
 // Put inserts a KeyPair into the database, and returns the KeyPair
 // or an error if it was unsuccessful.
 func (b *BadgerAdapter) Put(key Key, value Value) error {
+	if key == nil {
+		return errs.New("must provide non-nil key")
+	}
+
+	if value == nil {
+		return errs.New("must provide value to insert")
+	}
+
 	txn := b.db.NewTransaction(true)
 	defer txn.Discard()
 
