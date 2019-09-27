@@ -1,4 +1,4 @@
-module pangolindb
+module github.com/dylanlott/pangolindb
 
 go 1.12
 
