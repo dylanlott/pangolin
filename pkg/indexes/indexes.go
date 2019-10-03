@@ -23,8 +23,9 @@ func GetIndex() {
 
 }
 
+// NewIndex returns a new Index
 func NewIndex() *Index {
-
+	return &Index{}
 }
 
 // Insert adds an item to an *Index
