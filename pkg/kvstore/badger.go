@@ -19,8 +19,8 @@ const (
 	ErrInvalidKey = errs.Class("invalid key")
 )
 
-// NewBadgerAdapter Returns a new BadgerAdapter
-func NewBadgerAdapter(path string) (*BadgerAdapter, error) {
+// BadgerKVStore Returns a new BadgerAdapter
+func BadgerKVStore(path string) (*BadgerAdapter, error) {
 	opts := badger.DefaultOptions
 	opts.Dir = path
 	opts.ValueDir = path
@@ -28,11 +28,15 @@ func NewBadgerAdapter(path string) (*BadgerAdapter, error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// defer db.Close()
 
 	return &BadgerAdapter{
 		db: db,
 	}, nil
+}
+
+// Close shuts down the Badger connection
+func (b *BadgerAdapter) Close() {
+	b.db.Close()
 }
 
 // Get returns a KeyPair

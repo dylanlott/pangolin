@@ -1,4 +1,4 @@
-module github.com/dylanlott/pangolin
+module pangolin
 
 go 1.12
 

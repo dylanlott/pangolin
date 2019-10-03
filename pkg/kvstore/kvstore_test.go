@@ -14,7 +14,7 @@ func TestKVStore(t *testing.T) {
 	assert.NoError(t, err)
 	defer os.RemoveAll(testDir)
 
-	kv, err := NewBadgerAdapter(testDir)
+	kv, err := BadgerKVStore(testDir)
 	assert.NoError(t, err)
 	assert.NotNil(t, kv)
 	assert.NotNil(t, kv.db)
