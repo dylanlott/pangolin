@@ -5,6 +5,11 @@ import (
 	"golang.org/x/exp/mmap"
 )
 
+const (
+	// ErrNoKey is thrown if an empty key is provided to the hashtable
+	ErrNoKey = errs.Class("no key provided")
+)
+
 // Enforce HashTable to fulfill HT
 var _ HT = (*HashTable)(nil)
 
