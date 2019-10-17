@@ -6,7 +6,9 @@ package indexes
 * - Introduce transaction management
  */
 
-import "pangolin/pkg/kvstore"
+import (
+	"pangolin/pkg/kvstore"
+)
 
 // Index holds the information about the current index
 type Index struct {

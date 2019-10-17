@@ -33,7 +33,7 @@ func TestHashTables(t *testing.T) {
 		}
 
 		for _, i := range inserts {
-			ht.Insert(i.key, i.value)
+			ht.Put(i.key, i.value)
 		}
 
 		getCases := []struct {
@@ -47,11 +47,7 @@ func TestHashTables(t *testing.T) {
 		}
 
 		for _, i := range getCases {
-			val, err := ht.Get(i.key)
-			if err != i.wantErr {
-				t.Fail()
-			}
-
+			val := ht.Get(i.key)
 			if val != i.expected {
 				t.Fail()
 			}
