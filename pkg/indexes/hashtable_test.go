@@ -1,6 +1,7 @@
 package indexes
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -33,6 +34,8 @@ func TestHashTables(t *testing.T) {
 		}
 
 		for _, i := range inserts {
+			fmt.Printf("i.key %+v", i.key)
+			fmt.Printf("i.value %+v", i.value)
 			ht.Put(i.key, i.value)
 		}
 

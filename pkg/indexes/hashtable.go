@@ -60,16 +60,21 @@ func (ht *HashTable) Get(key string) interface{} {
 // Put puts a value into the hashtable
 func (ht *HashTable) Put(key string, value interface{}) error {
 	i := hash(key)
+	fmt.Printf("hashed key: %+v", i)
 	ht.items[i] = value
 	return Save(ht.path, ht)
 }
 
 // Update finds a value and updates it. This should be immutable.
 func (ht *HashTable) Update(key string, value interface{}) error {
-	return errs.New("not impl")
+	i := hash(key)
+	ht.items[i] = value
+	return Save(ht.path, ht)
 }
 
 // Delete removes a key value from the hashtable.
 func (ht *HashTable) Delete(key string) error {
-	return errs.New("not impl")
+	i := hash(key)
+	ht.items[i] = nil
+	return Save(ht.path, ht)
 }
